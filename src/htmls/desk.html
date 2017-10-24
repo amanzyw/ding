@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <script type="text/javascript" src="../../commonFunc.bundle.js"></script>
+        <script type="text/javascript" src="../scripts/socket.js"></script>
+        <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
+        <script type="text/javascript" src="../scripts/echarts.simple.min.js"></script>
+        <script type="text/javascript" src="../scripts/main.js"></script>
+        <script type="text/javascript" src="../scripts/old.main.js"></script>
+        <script>
+            common.getMsg();
+        </script>
+        <link rel="stylesheet" href="../styles/antd.css" />
+        <link rel="stylesheet" href="../styles/cssrest.css" />
+        <link rel="stylesheet" href="../styles/app.css" />
+        <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_w094gou4uzddkj4i.css" />
+        <script>
+            $(document).ready(function(){
+                if(!common.isLogin){
+                    antdObj.message.info("您还没有登录登录!",1.5,function(){
+                        window.location.href="/";
+                    });
+                    return;
+                }
+                //开启tooltip提示
+                common.tooltip();
+                var animating=false;
+                //tab切换
+                var tabSwitch=function(){
+                    var tab=$("#tab"),
+                        first_tab=tab.find(".tab_item"),
+                        tab_box=tab.find(".tab_top_box"),
+                        drop_line=tab.find(".drop_line");
+                    var tabBottom=$("#tab_bottom_box"),
+                        tabItems=tabBottom.find(".tab_cnt_item"),
+                        /*tabItem_width=tabItems.eq(0).width(),*/
+                        tabItem_width=$(".DD_tab").width(),
+                        tabItem_height=tabItems.eq(0).height(),
+                        tab_content=$("#tab_content");
+                    first_tab.eq(0).addClass("active").siblings().removeClass("active");
+                    tab_content.css({
+                        "width":tabItem_width,
+                        "overflow":"hidden"
+                    });
+                    tabItems.each(function(idx,item){
+                        tabItems.eq(idx).css({
+                            "width":tabItem_width,
+                            "display":"block",
+                            "float":"left"
+                        });
+                    });
+                    tabBottom.css({
+                        width:tabItem_width*tabItems.length,
+                        "position":"relative",
+                        "height":tabItems.eq(0).height(),
+                        "left":"0",
+                        "overflow":"hidden"
+                    });
+                    drop_line.css({
+                        "left":first_tab.offset().left-tab_box.offset().left,
+                        "width":first_tab.eq(0).outerWidth()
+                    });
+                    first_tab.off("click");
+                    first_tab.on("click",function(){
+                        if(animating==true){
+                            return;
+                        }
+                        animating=true;
+                        var left=$(this).offset().left;
+                        var index=$(this).index();
+                        tabBottom.css({
+                            height:tabItems.eq(index).height(),
+                            "overflow":"hidden"
+                        });
+                        tabBottom.animate({
+                            "left":-(index)*tabItem_width
+                        },300,"swing",function(){
+                            animating=false;
+                        });
+                        $(this).addClass("active").siblings().removeClass("active");
+                        drop_line.css({
+                            width:$(this).outerWidth()
+                        });
+                        drop_line.animate({
+                            left:left-tab_box.offset().left
+                        },300,"swing",function(){
+                            animating=false;
+                        });
+                    });
+                }
+                var myChart = echarts.init(document.getElementById('all_projects'));
+                var producting = echarts.init(document.getElementById('producting'));
+                // 指定图表的配置项和数据
+                var option = {
+                    color: ['#ff8585'],
+                    tooltip : {
+                        trigger: 'axis',
+                        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+                            type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                        }
+                    },
+                    legend: {
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis : [
+                        {
+                            type : 'category',
+                            data : ['在经营项目', '在生产项目', '已完成项目', '已完结项目'],
+                            axisTick: {
+                                alignWithLabel: true
+                            }
+                        }
+                    ],
+                    yAxis : {
+                    },
+                    series : [
+                        {
+                            name:'直接访问',
+                            type:'bar',
+                            barWidth: '60%',
+                            data:[
+                            {
+                                value:10,
+                                itemStyle:{
+                                    normal:{
+                                        color:"#ff8585"
+                                    }
+                                }
+                            },
+                            {
+                                value:5,
+                                itemStyle:{
+                                    normal:{
+                                        color:"#66b366"
+                                    }
+                                }
+                            },
+                            {
+                                value:3,
+                                itemStyle:{
+                                    normal:{
+                                        color:"#6685ff"
+                                    }
+                                }
+                            },
+                            {
+                                value:9,
+                                itemStyle:{
+                                    normal:{
+                                        color:"#ffc266"
+                                    }
+                                }
+                            }],
+                        }
+                    ]
+                };
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+                producting.setOption(option);
+                //tab切换
+                tabSwitch();
+                $(window).on("resize",function(){
+                    tabSwitch();
+                });
+                //左下角头像点击面板
+                common.hoverHeaderPic();
+                common.changeHeaderInfo();
+            });
+            function receiveMessage(event){
+                console.log(event);
+                console.log(event.source==window.flow);
+                $("#flow").css({
+                    "height":event.data
+                });
+            }
+            window.addEventListener("message",receiveMessage,false);
+        </script>
+    </head>
+    <body>
+        <div id="window" class="window">
+            <div id="viewport" class="viewport">
+                <div class="main_content">
+                    <!-- 头部start -->
+                    <header class="header main_header">
+                        <div id="view_header" class="view_header">
+                            <div class="login_info clearfix">
+                                <div class="logo_model fl clearfix">
+                                    <div class="logo_img fl">
+                                        <img class="logo" src="../images/header/logo.png" alt="柏嘉集团" />
+                                    </div>
+                                    <div class="logo_name fl">中交柏嘉生产经营管理系统</div>
+                                </div>
+                                <div class="user fr">
+                                    <div class="user_model">
+                                        <span class="date">2017年8月22日 星期二</span>
+                                        <span class="welcome">欢迎您，<i id="uname">xxx</i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    <!-- 头部end -->
+                    <!-- 左侧start -->
+                    <section id="left_menu" class="left_menu">
+                        <div class="view_left_menu">
+                            <div class="left_menu_model">
+                                <ul id="menus_box" class="menus_box">
+                                    <li class="menu_item active">
+                                        <a class="menu_link" data-tooltip="工作台" data-arrow-direction="right" href="./desk.html" target="_self">
+                                            <span class="DaDao DaDao-gongzuotaixuanzhong"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="我发起的" data-arrow-direction="right" href="./project.html" target="_self">
+                                            <span class="DaDao DaDao-xiangmu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="应用中心" data-arrow-direction="right" href="./application.html" target="_self">
+                                            <span class="DaDao DaDao-yingyongzhongxin"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="消息" data-arrow-direction="right" href="./message.html" target="_self">
+                                            <span class="DaDao DaDao-xiaoxi1"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="通讯录" data-arrow-direction="right" href="./maillist.html" target="_self">
+                                            <span class="DaDao DaDao-tongxunlu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="查询" data-arrow-direction="right" href="./query.html" target="_self">
+                                            <span class="DaDao DaDao-dwcxico"></span>
+                                        </a>
+                                    </li>
+                                </ul>
+                                <div class="menu_setting">
+                                    <div class="setting_item setting_u">
+                                        <a class="setting_link" data-tooltip="后台管理" data-arrow-direction="right" href="http://ee-manage-test.baijiakeji.cn/site/login.html" target="admin">
+                                            <span class="DaDao DaDao-houtai-kehuguanli"></span>
+                                        </a>
+                                    </div>
+                                    <!-- <div class="setting_item setting_t">
+                                        <a class="setting_link" data-tooltip="用户设置" data-arrow-direction="right" href="./personal_setting.html" target="_self">
+                                            <span class="DaDao DaDao-gerenshezhi"></span>
+                                        </a>
+                                    </div> -->
+                                    <div id="setting_me" class="setting_me">
+                                        <div class="tick">
+                                            <img class="head_pic" src="../images/examples/3401888993773024.jpg" src="" alt="" />
+                                        </div>
+                                        <div style="display:none;" class="ui_user_panel">
+                                            <ul class="ui_user_list">
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',1)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-account"></span>账户资料</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',2)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-password"></span>修改密码</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',3)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-binding"></span>账号绑定</a>
+                                                </li>
+                                                <li class="panel_item bd_none">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',4)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-__"></span>消息提醒</a>
+                                                </li>
+                                                <li class="line"></li>
+                                                <li class="panel_item quot">
+                                                    <a href="javascript:void(0);" onclick="common.toQuot()" class="block atance" target="_self">退出系统</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- 左侧end -->
+                    <!--内容区域start-->
+                    <section id="main_body" class="main_body">
+                        <div class="view_main_body">
+                            <div class="body_inner default_width">
+                                <div class="desk_top desk_content">
+                                    <div style="border:1px solid #ddd;">
+                                        <iframe id="flow" name="flow" frameborder="0" src="http://192.168.4.99:84/test.html?token=ZWVfqKRaL/Rk95x+4hkY5pSI5I0Omn4jqnEvkI7nXzE1MDg3MjA0Mjg="></iframe>
+                                    </div>
+                                    <div class="DD_tab tab_switch_content">
+                                        <div id="tab" class="ui_tab">
+                                            <div class="tab_header">
+                                                <div class="tab_top_box">
+                                                    <div class="tab_item active">待办事项</div>
+                                                    <div class="tab_item">已办事项</div>
+                                                    <div class="drop_line"></div>
+                                                </div>
+                                            </div>
+                                            <div id="tab_content" class="tab_content">
+                                                <div id="tab_bottom_box" class="tab_bottom_box">
+                                                    <div class="tab_cnt_item active">
+                                                        <div class="desk_table table">
+                                                            <table class="ui_table dadao_table table_strick">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>流程名称</th>
+                                                                        <th>任务名称</th>
+                                                                        <th width="120">剩余时间</th>
+                                                                        <th width="160">操作</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td>生产计划审批</td>
+                                                                        <td>***滨江路二期工程优化设计</td>
+                                                                        <td>1天</td>
+                                                                        <td>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="查看详情">
+                                                                                <span class="DaDao DaDao-chakanxiangqing"></span>
+                                                                                查看详情
+                                                                            </a>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="处理">
+                                                                                <span class="DaDao DaDao-dealapplyIcon"></span>
+                                                                                处理
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>生产计划审批</td>
+                                                                        <td>***滨江路二期工程优化设计</td>
+                                                                        <td>1天</td>
+                                                                        <td>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="查看详情">
+                                                                                <span class="DaDao DaDao-chakanxiangqing"></span>
+                                                                                查看详情
+                                                                            </a>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="处理">
+                                                                                <span class="DaDao DaDao-dealapplyIcon"></span>
+                                                                                处理
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>生产计划审批</td>
+                                                                        <td>***滨江路二期工程优化设计</td>
+                                                                        <td>1天</td>
+                                                                        <td>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="查看详情">
+                                                                                <span class="DaDao DaDao-chakanxiangqing"></span>
+                                                                                查看详情
+                                                                            </a>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="处理">
+                                                                                <span class="DaDao DaDao-dealapplyIcon"></span>
+                                                                                处理
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                            <div class="table_legend">待办事项：</div>
+                                                            <div class="empty">
+                                                                <div class="dadao_empty"></div>
+                                                                <div class="empty_text">暂时没有待处理的事项</div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="desk_pager_outer">
+                                                            <div class="tcdPageCode">
+                                                                <button class="dadao_btn" class="disabled" disabled>上一页</button>
+                                                                <button class="dadao_btn" class="current">1</button>
+                                                                <button class="dadao_btn" href="javascript:;" class="tcdNumber">2</button>
+                                                                <button class="dadao_btn" href="javascript:;" class="tcdNumber">3</button>
+                                                                <button class="dadao_btn" href="javascript:;" class="tcdNumber">4</button>
+                                                                <span>...</span>
+                                                                <button class="dadao_btn" href="javascript:;" class="tcdNumber">22</button>
+                                                                <button class="dadao_btn" href="javascript:;" class="nextPage">下一页</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="tab_cnt_item">
+                                                        <div class="desk_table table">
+                                                            <table class="ui_table dadao_table table_strick">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>流程名称</th>
+                                                                        <th>任务名称</th>
+                                                                        <th width="120">剩余时间</th>
+                                                                        <th width="160">操作</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td>生产计划审批</td>
+                                                                        <td>***滨江路二期工程优化设计</td>
+                                                                        <td>1天</td>
+                                                                        <td>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="查看详情">
+                                                                                <span class="DaDao DaDao-chakanxiangqing"></span>
+                                                                                查看详情
+                                                                            </a>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="处理">
+                                                                                <span class="DaDao DaDao-dealapplyIcon"></span>
+                                                                                处理
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>生产计划审批</td>
+                                                                        <td>***滨江路二期工程优化设计</td>
+                                                                        <td>1天</td>
+                                                                        <td>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="查看详情">
+                                                                                <span class="DaDao DaDao-chakanxiangqing"></span>
+                                                                                查看详情
+                                                                            </a>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="处理">
+                                                                                <span class="DaDao DaDao-dealapplyIcon"></span>
+                                                                                处理
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>生产计划审批</td>
+                                                                        <td>***滨江路二期工程优化设计</td>
+                                                                        <td>1天</td>
+                                                                        <td>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="查看详情">
+                                                                                <span class="DaDao DaDao-chakanxiangqing"></span>
+                                                                                查看详情
+                                                                            </a>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="处理">
+                                                                                <span class="DaDao DaDao-dealapplyIcon"></span>
+                                                                                处理
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>生产计划审批</td>
+                                                                        <td>***滨江路二期工程优化设计</td>
+                                                                        <td>1天</td>
+                                                                        <td>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="查看详情">
+                                                                                <span class="DaDao DaDao-chakanxiangqing"></span>
+                                                                                查看详情
+                                                                            </a>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="处理">
+                                                                                <span class="DaDao DaDao-dealapplyIcon"></span>
+                                                                                处理
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>生产计划审批</td>
+                                                                        <td>***滨江路二期工程优化设计</td>
+                                                                        <td>1天</td>
+                                                                        <td>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="查看详情">
+                                                                                <span class="DaDao DaDao-chakanxiangqing"></span>
+                                                                                查看详情
+                                                                            </a>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="处理">
+                                                                                <span class="DaDao DaDao-dealapplyIcon"></span>
+                                                                                处理
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>生产计划审批</td>
+                                                                        <td>***滨江路二期工程优化设计</td>
+                                                                        <td>1天</td>
+                                                                        <td>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="查看详情">
+                                                                                <span class="DaDao DaDao-chakanxiangqing"></span>
+                                                                                查看详情
+                                                                            </a>
+                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="处理">
+                                                                                <span class="DaDao DaDao-dealapplyIcon"></span>
+                                                                                处理
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                            <div class="table_legend">已办事项：</div>
+                                                            <div class="empty">
+                                                                <div class="dadao_empty"></div>
+                                                                <div class="empty_text">暂时没有待处理的事项</div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="desk_pager_outer">
+                                                            <div class="tcdPageCode">
+                                                                <div class="tcdPageCode">
+                                                                <button class="dadao_btn" class="disabled" disabled>上一页</button>
+                                                                <button class="dadao_btn" class="current">1</button>
+                                                                <button class="dadao_btn" href="javascript:;" class="tcdNumber">2</button>
+                                                                <span>...</span>
+                                                                <button class="dadao_btn" href="javascript:;" class="tcdNumber">22</button>
+                                                                <button class="dadao_btn" href="javascript:;" class="nextPage">下一页</button>
+                                                            </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="project">
+                                        <div class="project_count">项目统计</div>
+                                        <div class="project_charts clearfix">
+                                            <div class="charts chartes_item1 fl">
+                                                <div class="state">(所有项目 单位：个)</div>
+                                                <div id="all_projects" class="all_projects" style="width:506px;height:318px;"></div>
+                                            </div>
+                                            <div class="charts chartes_item2 fl">
+                                                <div class="state">(在生产项目 单位：个)</div>
+                                                <div id="producting" class="producting" style="width:506px;height:318px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!--内容区域end-->
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

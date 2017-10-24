@@ -1,0 +1,328 @@
+/*!
+ * Cropper v0.3.2
+ * https://github.com/fengyuanchen/cropper
+ *
+ * Copyright 2014 Fengyuan Chen
+ * Released under the MIT license
+ */
+
+.cropper-container {
+    position: relative;
+    overflow: hidden;
+    -webkit-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
+    background-color: #fff;
+
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+.cropper-container .cropper-modal {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: #000;
+    filter: alpha(opacity=50);
+    opacity: .5;
+}
+
+.cropper-container .cropper-dragger {
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    width: 80%;
+    height: 80%;
+}
+
+.cropper-container .cropper-preview {
+    display: block;
+    width: 100%;
+    height: 100%;
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+    overflow: hidden;
+    border-color: #d3d3d3;
+    border-style: solid;
+    border-width: 1px;
+}
+
+.cropper-container .cropper-dashed {
+    position: absolute;
+    display: block;
+    filter: alpha(opacity=50);
+    border: 0 dashed #fff;
+    opacity: .5;
+}
+
+.cropper-container .dashed-h {
+    top: 33.3%;
+    left: 0;
+    width: 100%;
+    height: 33.3%;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+}
+
+.cropper-container .dashed-v {
+    top: 0;
+    left: 33.3%;
+    width: 33.3%;
+    height: 100%;
+    border-right-width: 1px;
+    border-left-width: 1px;
+}
+
+.cropper-container .cropper-face,
+.cropper-container .cropper-line,
+.cropper-container .cropper-point {
+    position: absolute;
+    display: block;
+    width: 100%;
+    height: 100%;
+    filter: alpha(opacity=10);
+    opacity: .1;
+}
+
+.cropper-container .cropper-face {
+    top: 0;
+    left: 0;
+    cursor: move;
+    background-color: #fff;
+}
+
+.cropper-container .cropper-line {
+    /*background-color: #69f;*/
+    background:#fff url(../../../images/common/uploader_line.gif);
+}
+
+.cropper-container .line-e {
+    top: 0;
+    right: -2px;
+    width: 5px;
+    cursor: e-resize;
+}
+
+.cropper-container .line-n {
+    top: -2px;
+    left: 0;
+    height: 5px;
+    cursor: n-resize;
+}
+
+.cropper-container .line-w {
+    top: 0;
+    left: -2px;
+    width: 5px;
+    cursor: w-resize;
+}
+
+.cropper-container .line-s {
+    bottom: -2px;
+    left: 0;
+    height: 5px;
+    cursor: s-resize;
+}
+
+.cropper-container .cropper-point {
+    /* width: 5px;
+    height: 5px;
+    background-color: #69f;
+    filter: alpha(opacity=75);
+    opacity: .75; */
+    background-color: #333;
+    border: 1px #eee solid;
+    width: 7px;
+    height: 7px;
+    font-size: 1px;
+}
+
+.cropper-container .point-e {
+    top: 49%;
+    right: -2px;
+    cursor: e-resize;
+}
+
+.cropper-container .point-n {
+    top: -2px;
+    left: 49%;
+    cursor: n-resize;
+}
+
+.cropper-container .point-w {
+    top: 49%;
+    left: -2px;
+    cursor: w-resize;
+}
+
+.cropper-container .point-s {
+    bottom: -2px;
+    left: 49%;
+    cursor: s-resize;
+}
+
+.cropper-container .point-ne {
+    top: -2px;
+    right: -2px;
+    cursor: ne-resize;
+}
+
+.cropper-container .point-nw {
+    top: -2px;
+    left: -2px;
+    cursor: nw-resize;
+}
+
+.cropper-container .point-sw {
+    bottom: -2px;
+    left: -2px;
+    cursor: sw-resize;
+}
+
+.cropper-container .point-se {
+    right: -2px;
+    bottom: -2px;
+    width: 6px;
+    height: 6px;
+    cursor: se-resize;
+    filter: alpha(opacity=100);
+    opacity: 1;
+}
+
+.cropper-container .point-se:before {
+    position: absolute;
+    right: -50%;
+    bottom: -50%;
+    display: block;
+    width: 200%;
+    height: 200%;
+    content: " ";
+    background-color: #69f;
+    filter: alpha(opacity=0);
+    opacity: 0;
+}
+
+@media (min-width: 768px) {
+    .cropper-container .point-se {
+        width: 6px;
+        height: 6px;
+    }
+}
+
+@media (min-width: 992px) {
+    .cropper-container .point-se {
+        width: 10px;
+        height: 10px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .cropper-container .point-se {
+        width: 5px;
+        height: 5px;
+        filter: alpha(opacity=75);
+        opacity: .75;
+    }
+}
+
+.cropper-hidden {
+    display: none !important;
+}
+#wrapper {
+    width: 980px;
+    margin: 0 auto;
+
+    margin: 1em;
+    width: auto;
+}
+
+.img-preview {
+    width: 100px;
+    height: 100px;
+    border: 1px solid #ccc;
+    position: absolute;
+    right: -205px;
+    top: 4px;
+}
+
+.cropper-wraper {
+    position: relative;
+}
+
+.upload-btn {
+    /* background: #ffffff;
+    border: 1px solid #cfcfcf;
+    color: #565656;
+    padding: 10px 18px;
+    display: inline-block;
+    border-radius: 3px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-size: 14px;
+
+    position: absolute;
+    right: 1em;
+    bottom: 2em; */
+}
+.upload-btn:hover {
+    background: #f0f0f0;
+}
+.webuploader-container {
+    position: relative;
+}
+.webuploader-element-invisible {
+    position: absolute !important;
+    clip: rect(1px 1px 1px 1px); /* IE6, IE7 */
+    clip: rect(1px,1px,1px,1px);
+}
+.webuploader-element-invisible~.fileUpLoaderPanel{
+    margin-bottom:0;
+}
+.webuploader-pick {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    background: transparent;
+    color: #fff;
+    text-align: center;
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 0 -22px;
+    padding: 0 22px;
+    color: rgba(0,0,0,.65);
+    color: #666;
+}
+.webuploader-pick-hover {
+    background:transparent;
+    color: #ff8700;
+}
+
+.webuploader-pick-disable {
+    opacity: 0.6;
+    pointer-events:none;
+}
+#uploader_view{
+    position:relative;
+}
+.fileUpLoaderPanel{
+    width:200px;
+    margin-top: -80px;
+    margin-bottom:80px;
+    position:relative;
+    background-color:#fff;
+}
+
+.uploader_btn_group{
+    margin-top: 25px;
+}
+.uploader_btn_group .cancel,.uploader_btn_group .save{
+    /* margin-right:48px; */
+    width: 48px;
+}
+.uploader_btn_group .save{
+    float: right;
+}

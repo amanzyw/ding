@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <script type="text/javascript" src="../../commonFunc.bundle.js"></script>
+        <script type="text/javascript" src="../scripts/socket.js"></script>
+        <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
+        <script type="text/javascript" src="../scripts/main.js"></script>
+        <script type="text/javascript" src="../scripts/old.main.js"></script>
+        <script type="text/javascript" src="../scripts/plugins/bootstrap-tree/js/bootstrap-treeview.js"></script>
+        <script type="text/javascript" src="../scripts/plugins/bootstrap-table/js/bootstrap-table.js"></script>
+        <script type="text/javascript" src="../scripts/plugins/jquery-page/js/jquery.page.js"></script>
+        <script>
+            common.getMsg();
+        </script>
+        <link rel="stylesheet" href="../../styles/bootstrap.min.css" />
+        <link rel="stylesheet" href="../scripts/plugins/bootstrap-tree/css/bootstrap-treeview.css" />
+        <link rel="stylesheet" href="../styles/antd.css" />
+        <link rel="stylesheet" href="../styles/cssrest.css" />
+        <link rel="stylesheet" href="../styles/app.css" />
+        <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_irdk89uxsf9a4i.css" />
+        <script>
+            var getUrlInfo=common.getUrlInfo,
+                URL=getUrlInfo.URL,
+                version=getUrlInfo.version,
+                currentIndex=1,
+                url=URL+"/"+version,
+                maxPage=null,
+                pageSize=10,
+                pageNo=1;
+
+            //获取组织架构
+            var getorgs=function(){
+                var htmlCode=function(data){
+                    var tamp="";
+                    $.each(data,function(idx,item){
+                        tamp+="<li>";
+                        tamp+=    '<span class="ant-select-tree-switcher ant-select-tree-switcher_close"></span>';
+                        tamp+=    '<span title="parent 1" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-open"><span class="ant-select-tree-title">'+item["text"]+'</span></span>';
+                        if($.isArray(item["nodes"])&&item["nodes"].length!=0){
+                            tamp+=htmlCode(item["children"]);
+                        }
+                        tamp+="</li>";
+                    });
+                    return tamp;
+                }
+                //http://ee-api-test.baijiakeji.cn/v1/defaults/getorgs
+                $.ajax({
+                    url:url+"/defaults/getorgs",
+                    type:"get",
+                    async:true,
+                    headers:{
+                        Authorization:"Bearer "+JSON.parse(window.localStorage.getItem("userLoginInfo"))["token"]
+                    },
+                    success:function(data){
+                        if(data.code!=undefined){
+                            antdObj.message.error("获取信息出错，请重新登录！",1.5,function(){
+                                common.storageFunc.removeAll();
+                                window.location.href="/";
+                            });
+                        }
+                        var result=data;
+                        /*
+                        var html=htmlCode(result);
+                        $(".ant-select-tree").html(html);*/
+                        $('#tree_node').treeview({
+                            data:result,
+                            emptyIcon:"glyphicon glyphicon-stop",
+                            levels:"1",
+                            onNodeSelected:function(event,data){
+                                var router=[];
+                                var getRouter=function(data){
+                                    var parentNode=$('#tree_node').treeview('getParent',data);
+                                    if(parentNode["nodeId"]!=undefined){
+                                        router.unshift('<span class="route_item">'+data["text"]+"</span>");
+                                        getRouter(parentNode);
+                                    }else{
+                                        router.unshift('<span class="route_item">'+data["text"]+"</span>");
+                                    }
+                                }
+                                getRouter(data);
+                                $("#ui_router").html(router.join('<span class="arrow">&gt;&gt;</span>'));
+                                $.ajax({
+                                    url:url+"/defaults/getemployees",
+                                    type:"post",
+                                    async:true,
+                                    headers:{
+                                        Authorization:"Bearer "+JSON.parse(window.localStorage.getItem("userLoginInfo"))["token"]
+                                    },
+                                    dataType:"json",
+                                    data:{
+                                        id:data["org_id"],
+                                        pagesize:pageSize,
+                                        pageno:pageNo
+                                    },
+                                    success:function(data){
+                                        var data1=data["employees"];
+                                        maxPage=data["count"];
+                                        var html="";
+                                        if(data1.length==0){
+                                            $("#tbody").html('<tr><td colspan="6"><div class="empty"><div class="dadao_empty"></div><div class="empty_text">暂时没有成员信息!</div></div></td></tr>');
+                                            $(".tcdPageCode").empty();
+                                        }else{
+                                            $.each(data1,function(idx,item){
+                                                html+="<tr data-menber-id='"+item["org_id"]+"'>";
+                                                html+=    "<td>"+item["username"]+"</td>";
+                                                html+=    "<td>"+item["mobile_phone"]+"</td>";
+                                                html+=    "<td>"+item["email"]+"</td>";
+                                                html+=    "<td>"+item["name"]+"</td>";
+                                                html+=    "<td>"+(item["position"]||"")+"</td>";
+                                                html+="</tr>";
+                                            });
+                                            $("#tbody").html(html);
+                                            $(".tcdPageCode").createPage({
+                                                pageCount:Math.ceil(maxPage/pageSize),
+                                                current:currentIndex,
+                                                backFn:function(p){
+                                                    pageNo=p;
+                                                    currentIndex=p;
+                                                    getMenber();
+                                                }
+                                            });
+                                        }
+                                    },
+                                    error:function(){
+                                        antdObj.message.error("获取成员信息出错！");
+                                    }
+                                })
+                                /*$('#table').bootstrapTable({
+                                    columns: [{
+                                        field: 'id',
+                                        title: 'Item ID'
+                                    }, {
+                                        field: 'name',
+                                        title: 'Item Name'
+                                    }, {
+                                        field: 'price',
+                                        title: 'Item Price'
+                                    }],
+                                    data: [{
+                                        id: 1,
+                                        name: 'Item 1',
+                                        price: '$1'
+                                    }, {
+                                        id: 2,
+                                        name: 'Item 2',
+                                        price: '$2'
+                                    }]
+                                });*/
+                            }
+                        });
+                    },
+                    error:function(){
+                        antdObj.message.error("获取组织架构出错！");
+                    }
+                });
+            };
+            //获取成员信息
+            var getMenber=function(){
+                $.ajax({
+                    url:url+"/defaults/getemployees",
+                    type:"post",
+                    async:true,
+                    headers:{
+                        Authorization:"Bearer "+JSON.parse(window.localStorage.getItem("userLoginInfo"))["token"]
+                    },
+                    dataType:"json",
+                    data:{
+                        pagesize:pageSize,
+                        pageno:pageNo
+                    },
+                    success:function(data){
+                        var idata=data["employees"];
+                        var html="";
+                        maxPage=data["count"]-0;
+                        if(idata.length==0){
+                            $("#tbody").html('<tr><td colspan="6"><div class="empty"><div class="dadao_empty"></div><div class="empty_text">暂时没有成员信息！</div></div></td></tr>');
+                        }else{
+                            $.each(idata,function(idx,item){
+                                html+="<tr data-menber-id='"+item["org_id"]+"'>";
+                                html+=    "<td>"+item["username"]+"</td>";
+                                html+=    "<td>"+item["mobile_phone"]+"</td>";
+                                html+=    "<td>"+item["email"]+"</td>";
+                                html+=    "<td>"+item["name"]+"</td>";
+                                html+=    "<td>"+(item["position"]||"")+"</td>";
+                                html+="</tr>";
+                            });
+                            $("#tbody").html(html);
+                            $(".tcdPageCode").createPage({
+                                pageCount:Math.ceil(maxPage/pageSize),
+                                current:currentIndex,
+                                backFn:function(p){
+                                    pageNo=p;
+                                    currentIndex=p;
+                                    getMenber();
+                                }
+                            });
+                        }
+                    },
+                    error:function(){
+                        antdObj.message.error("获取成员信息出错！");
+                    }
+                })
+            }
+
+
+            $(document).ready(function(){
+                if(!common.isLogin){
+                    antdObj.message.info("您还没有登录!",1.5,function(){
+                        window.location.href="/";
+                    });
+                    return;
+                }
+                //开启tooltip提示
+                common.tooltip();
+                //树形结构交互
+                var tree_node=function(){
+                    var tree=$("#tree_node");
+                    var caret=tree.find(".ant-select-tree-switcher").not(".ant-select-tree-switcher-noop");
+                    var node=tree.find(".ant-select-tree-node-content-wrapper");
+                    caret.on("click",function(){
+                        var isopen=$(this).is(".ant-select-tree-switcher_open");
+                        if(isopen){
+                            $(this).removeClass("ant-select-tree-switcher_open").addClass("ant-select-tree-switcher_close");
+                            $(this).siblings("ul").removeClass("ant-select-tree-child-tree-open");
+                        }else{
+                            $(this).removeClass("ant-select-tree-switcher_close").addClass("ant-select-tree-switcher_open");
+                            $(this).siblings("ul").addClass("ant-select-tree-child-tree-open");
+                        }
+                    });
+                    node.on("click",function(){
+                        var text=$.trim($(this).text());
+                        tree.find(".ant-tree-selected").removeClass("ant-tree-selected");
+                        $(this).addClass("ant-tree-selected");
+                        alert("选中了："+text);
+                    });
+                }
+                //获取组织架构
+                getorgs();
+                //获取成员信息
+                getMenber();
+                //左下角头像点击面板
+                common.hoverHeaderPic();
+                common.changeHeaderInfo();
+            });
+        </script>
+    </head>
+    <body>
+        <div id="window" class="window">
+            <div id="viewport" class="viewport">
+                <div class="main_content">
+                    <!-- 头部start -->
+                    <header class="header main_header">
+                        <div id="view_header" class="view_header">
+                            <div class="login_info clearfix">
+                                <div class="logo_model fl clearfix">
+                                    <div class="logo_img fl">
+                                        <img class="logo" src="../images/header/logo.png" alt="柏嘉集团" />
+                                    </div>
+                                    <div class="logo_name fl">中交柏嘉生产经营管理系统</div>
+                                </div>
+                                <div class="user fr">
+                                    <div class="user_model">
+                                        <span class="date">2017年8月22日 星期二</span>
+                                        <span class="welcome">欢迎您，<i id="uname">xxx</i> </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    <!-- 头部end -->
+                    <!-- 左侧start -->
+                    <section id="left_menu" class="left_menu">
+                        <div class="view_left_menu">
+                            <div class="left_menu_model">
+                                <ul id="menus_box" class="menus_box">
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="工作台" data-arrow-direction="right" href="./desk.html" target="_self">
+                                            <span class="DaDao DaDao-gongzuotaixuanzhong"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="我发起的" data-arrow-direction="right" href="./project.html" target="_self">
+                                            <span class="DaDao DaDao-xiangmu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="应用中心" data-arrow-direction="right" href="./application.html" target="_self">
+                                            <span class="DaDao DaDao-yingyongzhongxin"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="消息" data-arrow-direction="right" href="./message.html" target="_self">
+                                            <span class="DaDao DaDao-xiaoxi1"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item active">
+                                        <a class="menu_link" data-tooltip="通讯录" data-arrow-direction="right" href="./maillist.html" target="_self">
+                                            <span class="DaDao DaDao-tongxunlu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="查询" data-arrow-direction="right" href="./query.html" target="_self">
+                                            <span class="DaDao DaDao-dwcxico"></span>
+                                        </a>
+                                    </li>
+                                </ul>
+                                <div class="menu_setting">
+                                    <div class="setting_item setting_u">
+                                        <a class="setting_link" data-tooltip="后台管理" data-arrow-direction="right" href="http://ee-manage-test.baijiakeji.cn/site/login.html" target="admin">
+                                            <span class="DaDao DaDao-houtai-kehuguanli"></span>
+                                        </a>
+                                    </div>
+                                    <!-- <div class="setting_item setting_t">
+                                        <a class="setting_link" data-tooltip="用户设置" data-arrow-direction="right" href="javascript:void(0);">
+                                            <span class="DaDao DaDao-gerenshezhi"></span>
+                                        </a>
+                                    </div> -->
+                                    <div id="setting_me" class="setting_me">
+                                        <div class="tick">
+                                            <img class="head_pic" src="../images/examples/3401888993773024.jpg" src="" alt="" />
+                                        </div>
+                                        <div style="display:none;" class="ui_user_panel">
+                                            <ul class="ui_user_list">
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',1)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-account"></span>账户资料</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',2)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-password"></span>修改密码</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',3)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-binding"></span>账号绑定</a>
+                                                </li>
+                                                <li class="panel_item bd_none">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',4)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-__"></span>消息提醒</a>
+                                                </li>
+                                                <li class="line"></li>
+                                                <li class="panel_item quot">
+                                                    <a href="javascript:void(0);" onclick="common.toQuot()" class="block atance" target="_self">退出系统</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- 左侧end -->
+                    <!--内容区域start-->
+                    <section id="main_body" class="main_body">
+                        <div class="view_main_body">
+                            <div class="body_inner default_width">
+                                <div class="mail_list_box mail_content">
+                                    <div class="display_box box_wrap">
+                                        <div class="ui_group">
+                                            <div class="group_text">组织架构</div>
+                                            <div onclick="getMenber()" style="text-align: left;padding: 9px 14px 9px;">
+                                                <a href="javascript:void(0);">全体成员</a>
+                                            </div>
+                                            <div id="tree_node" class="">
+                                                <div>
+                                                    <ul class="ant-select-tree" role="tree-node" unselectable="true">
+                                                         <!-- <li class="">
+                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher_open"></span>
+                                                            <span title="parent 1" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-open">
+                                                                <span class="ant-select-tree-title">中交柏嘉工程技术研究院</span>
+                                                            </span>
+                                                            <ul class="ant-select-tree-child-tree ant-select-tree-child-tree-open" data-expanded="true">
+                                                                <li class="">
+                                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher_open">
+                                                                    </span>
+                                                                    <span title="parent 1-0" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-open">
+                                                                        <span class="ant-select-tree-title">生产部</span>
+                                                                    </span>
+                                                                    <ul class="ant-select-tree-child-tree ant-select-tree-child-tree-open" data-expanded="true">
+                                                                        <li class="">
+                                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop"></span>
+                                                                            <span class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal ant-tree-selected">
+                                                                                <span class="ant-select-tree-title">西安分院</span>
+                                                                            </span>
+                                                                        </li>
+                                                                        <li class="">
+                                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                                            </span>
+                                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                                <span class="ant-select-tree-title">四川分院</span>
+                                                                            </span>
+                                                                        </li>
+                                                                        <li class="">
+                                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                                            </span>
+                                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                                <span class="ant-select-tree-title">武汉分院</span>
+                                                                            </span>
+                                                                        </li>
+                                                                        <li class="">
+                                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                                            </span>
+                                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                                <span class="ant-select-tree-title">浙江分院</span>
+                                                                            </span>
+                                                                        </li>
+                                                                    </ul>
+                                                                </li>
+                                                                <li class="">
+                                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher_close"></span>
+                                                                    <span title="parent 1-1" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-open">
+                                                                        <span class="ant-select-tree-title">经营部</span>
+                                                                    </span>
+                                                                    <ul class="ant-select-tree-child-tree" data-expanded="true">
+                                                                        <li class="">
+                                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                                            </span>
+                                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                                <span class="ant-select-tree-title">生产经营管理部</span>
+                                                                            </span>
+                                                                        </li>
+                                                                        <li class="">
+                                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                                            </span>
+                                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                                <span class="ant-select-tree-title">技术质量管理部</span>
+                                                                            </span>
+                                                                        </li>
+                                                                        <li class="">
+                                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                                            </span>
+                                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                                <span class="ant-select-tree-title">财务管理部</span>
+                                                                            </span>
+                                                                        </li>
+                                                                        <li class="">
+                                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                                            </span>
+                                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                                <span class="ant-select-tree-title">法律审查部</span>
+                                                                            </span>
+                                                                        </li>
+                                                                        <li class="">
+                                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                                            </span>
+                                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                                <span class="ant-select-tree-title">行政管理部</span>
+                                                                            </span>
+                                                                        </li>
+                                                                        <li class="">
+                                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                                            </span>
+                                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                                <span class="ant-select-tree-title">总裁办</span>
+                                                                            </span>
+                                                                        </li>
+                                                                    </ul>
+                                                                </li>
+                                                                <li class="">
+                                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                                    </span>
+                                                                    <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                        <span class="ant-select-tree-title">管理部</span>
+                                                                    </span>
+                                                                </li>
+                                                                <li class="">
+                                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                                    </span>
+                                                                    <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                        <span class="ant-select-tree-title">科技部</span>
+                                                                    </span>
+                                                                </li>
+                                                            </ul>
+                                                        </li>-->
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <!-- <div class="slide_div">
+                                                <div class="swap_out"><span class="DaDao DaDao-icon_arrow_left"></span></div>
+                                            </div> -->
+                                        </div>
+                                        <div class="mail_content_inner">
+                                            <div class="group_by">
+                                                <div id="ui_router" class="ui_router">
+                                                    <!-- <span class="route_item">中交柏嘉工程技术研究院</span>
+                                                    <span class="arrow">&gt;&gt;</span>
+                                                    <span class="route_item">生产部</span>
+                                                    <span class="arrow">&gt;&gt;</span>
+                                                    <span class="route_item active">西安分院</span> -->
+                                                    <span class="route_item">全体成员</span>
+                                                </div>
+                                                <div class="group_table">
+                                                    <div class="desk_table table maillist_table">
+                                                        <table class="ui_table dadao_table table_strick">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>姓名</th>
+                                                                    <th>电话</th>
+                                                                    <th>邮箱</th>
+                                                                    <th>部门</th>
+                                                                    <th>职务</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="tbody">
+                                                                <tr>
+                                                                    <td>
+                                                                        <a class="menber" href="#">
+                                                                            <img class="menber_img" src="../images/examples/3401888993773024.jpg" alt="张有为" />
+                                                                        </a>
+                                                                        张有为
+                                                                    </td>
+                                                                    <td>13484538788</td>
+                                                                    <td>13484538788@139.com</td>
+                                                                    <td>互联网研究院</td>
+                                                                    <td>web开发</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                        <!-- <div class="empty">
+                                                            <div class="dadao_empty"></div>
+                                                            <div class="empty_text">暂时没有待处理的事项</div>
+                                                        </div> -->
+                                                    </div>
+                                                    <div id="pager" class="">
+                                                        <div class="desk_pager_outer">
+                                                            <div class="tcdPageCode">
+                                                                <button class="dadao_btn" disabled="">上一页</button>
+                                                                <button class="dadao_btn">1</button>
+                                                                <button class="dadao_btn" href="javascript:;">2</button>
+                                                                <button class="dadao_btn" href="javascript:;">3</button>
+                                                                <button class="dadao_btn" href="javascript:;">4</button>
+                                                                <span>...</span>
+                                                                <button class="dadao_btn" href="javascript:;">22</button>
+                                                                <button class="dadao_btn" href="javascript:;">下一页</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!--内容区域end-->
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

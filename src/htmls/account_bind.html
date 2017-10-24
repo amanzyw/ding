@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <script type="text/javascript" src="../../commonFunc.bundle.js"></script>
+        <script type="text/javascript" src="../scripts/socket.js"></script>
+        <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
+        <script type="text/javascript" src="../scripts/echarts.simple.min.js"></script>
+        <script type="text/javascript" src="../scripts/main.js"></script>
+        <script type="text/javascript" src="../scripts/old.main.js"></script>
+        <script>
+            common.getMsg();
+        </script>
+        <link rel="stylesheet" href="../styles/antd.css" />
+        <link rel="stylesheet" href="../styles/cssrest.css" />
+        <link rel="stylesheet" href="../styles/app.css" />
+        <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_w094gou4uzddkj4i.css" />
+        <script>
+            $(document).ready(function(){
+                if(!common.isLogin){
+                    antdObj.message.info("您还没有登录登录!",1.5,function(){
+                        window.location.href="/";
+                    });
+                    return;
+                }
+                //开启tooltip提示
+                common.tooltip();
+                //左下角头像点击面板
+                common.hoverHeaderPic();
+                //绑定微信动画效果
+                var bindWX=function(){
+                    var box=$("#bindWXBox");
+                    var isShow;
+                    var isLowIE=window.navigator.userAgent.match(/MSIE\s(\d).0/);
+                    var isanimation=false;
+                    box.get(0).style.cssText="display:none;transform-origin:50% 100%;webkitTransform-origin:50% 100%;mozTransform-origin:50% 100%;msTransform-origin:50% 100%;";
+                    $("#bindWX").on("click",function(e){
+                        if(isanimation){
+                            return;
+                        }
+                        isanimation=true;
+                        e.stopPropagation();
+                        isShow=box.css("display")=="none"?false:true;
+                        if(isShow){
+                            box.addClass("antZoomOut");
+                            /*if(!isSupportAEnd){
+                                box.hide();
+                            }*/
+                            try{
+                                if(isLowIE[1]<10){
+                                    box.hide();
+                                }
+                            }catch(e){}
+                        }else{
+                            box.show();
+                            box.addClass("antZoomIn");
+                        }
+                    });
+                    box.on("click",function(e){
+                        e.stopPropagation();
+                    });
+                    box.get(0).addEventListener&&box.get(0).addEventListener("animationend",function(){
+                        if(isShow){
+                            box.hide();
+                        }
+                        isShow=!isShow;
+                        box.removeClass("antZoomOut");
+                        box.removeClass("antZoomIn");
+                        isanimation=false;
+                    },false);
+
+                    $(document).on("click",function(e){
+                        e.stopPropagation();
+                        if(isShow){
+                            box.addClass("antZoomOut");
+                        }
+                        /*if(!isSupportAEnd){
+                            box.hide();
+                        }*/
+                        try{
+                            if(isLowIE[1]<10){
+                                box.hide();
+                            }
+                        }catch(e){}
+                    });
+                    box.find(".close").on("click",function(e){
+                        e.stopPropagation();
+                        box.addClass("antZoomOut");
+                        /*if(!isSupportAEnd){
+                            box.hide();
+                        }*/
+                        try{
+                            if(isLowIE[1]<10){
+                                box.hide();
+                            }
+                        }catch(e){}
+                    });
+                }
+                //绑定手机号码
+                var bindPhone=function(){
+                    var box=$("#phoneDIV"),
+                        btn=$("#bindPhone"),
+                        PhoneRegister=/^1[34578]\d{9}$/,
+                        isSending=false,
+                        htmlTree=null,
+                        htmlTreeDom=null,
+                        totalTime=10,
+                        currentTime=10,
+                        timer=null,
+                        getPhoneCode=function(){
+                            var btn=$("#get_phone_code");
+                            var time=currentTime<=0?totalTime:currentTime;
+                            btn.text(time+"s后重新发送");
+                            clearInterval(timer);
+                            timer=setInterval(function(){
+                                time--;
+                                currentTime=time;
+                                if(time<=0){
+                                   btn.text("发送验证码");
+                                   clearInterval(timer);
+                                   isSending=false;
+                                }else{
+                                    btn.text(time+"s后重新发送");
+                                }
+                            },1000);
+                        }
+                    btn.on("click",function(e){
+                        var html=[];
+                        if(htmlTree!=undefined){
+                            return;
+                        }else if(htmlTreeDom!=undefined){
+                            box.append(htmlTreeDom);
+                            if(currentTime>0&&currentTime!=totalTime){
+                                $("#get_phone_code").trigger("click");
+                            }
+                            return;
+                        }
+                        html.push('<div class="bind_phone_panel">');
+                        html.push('<div class="pheone_input li"><input id="pheoneNum" type="text" class="dadao_input dadao_input_lg" placeholder="请输入你的手机号码"/></div>');
+                        html.push('<div class="li">');
+                        html.push('<div class="iblock get_code"><input class="dadao_input dadao_input_lg" type="text" placeholder="验证码"/></div>');
+                        html.push('<div class="iblock send_code"><button id="get_phone_code" class="dadao_btn dadao_btn_lg dadao_btn_primary">获取验证码</button></div>');
+                        html.push('</div>');
+                        html.push('<div class="li">');
+                        html.push('<div class="iblock cancel"><button id="cancelpanel" class="dadao_btn dadao_btn_lg">取消</button></div>');
+                        html.push('<div class="iblock get_sure"><button id="gotobind" class="dadao_btn dadao_btn_lg dadao_btn_primary">绑定手机号码</button></div>');
+                        html.push('</div>');
+                        html.push('</div>');
+                        htmlTree=html.join("");
+                        htmlTreeDom=$(htmlTree).appendTo(box);
+                    });
+                    //发送验证码
+                    $(document).delegate("#get_phone_code","click",function(){
+                        if(isSending){
+                            return;
+                        }
+                        isSending=true;
+                        var result=PhoneRegister.test($.trim($("#pheoneNum").val()));
+                        if(result){
+                            getPhoneCode();
+                        }else{
+                            alert("请填写正确的手机号码");
+                            isSending=false;
+                        }
+                    });
+                    //去绑定
+                    $(document).delegate("#gotobind","click",function(){
+
+                    });
+                    //取消
+                    $(document).delegate("#cancelpanel","click",function(){
+                        htmlTree=null;
+                        htmlTreeDom.remove();
+                        clearInterval(timer);
+                        isSending=false;
+                    });
+                }
+                //绑定邮箱地址
+                var bindEmail=function(){
+                    var box=$("#emailDIV"),
+                        btn=$("#bindEmail"),
+                        EmailRegister=/^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/,
+                        isSending=false,
+                        htmlTree=null,
+                        htmlTreeDom=null,
+                        totalTime=10,
+                        currentTime=10,
+                        timer=null,
+                        getPhoneCode=function(){
+                            var btn=$("#send_email_code");
+                            var time=currentTime<=0?totalTime:currentTime;
+                            btn.text(time+"s后重新发送");
+                            clearInterval(timer);
+                            timer=setInterval(function(){
+                                time--;
+                                currentTime=time;
+                                if(time<=0){
+                                   btn.text("发送验证码");
+                                   clearInterval(timer);
+                                   isSending=false;
+                                }else{
+                                    btn.text(time+"s后重新发送");
+                                }
+                            },1000);
+                        }
+                    btn.on("click",function(e){
+                        var html=[];
+                        if(htmlTree!=undefined){
+                            return;
+                        }else if(htmlTreeDom!=undefined){
+                            box.append(htmlTreeDom);
+                            if(currentTime>0&&currentTime!=totalTime){
+                                $("#send_email_code").trigger("click");
+                            }
+                            return;
+                        }
+                        html.push('<div class="bind_phone_panel" style="padding:0 0 20px 0;">');
+                        html.push('<div class="pheone_input li"><input id="emailAddress" type="text" class="dadao_input dadao_input_lg" placeholder="请输入您的邮箱地址"/></div>');
+                        html.push('<div class="li">');
+                        /*html.push('<div class="iblock get_code"><input class="dadao_input dadao_input_lg" type="text" placeholder="验证码"/></div>');*/
+                        html.push('<div class="iblock get_code"><button id="cancelBindEmail" class="dadao_btn dadao_btn_lg">取消</button></div>');
+                        html.push('<div class="iblock send_code"><button id="send_email_code" class="dadao_btn dadao_btn_lg dadao_btn_primary">发送邮箱验证</button></div>');
+                        html.push('</div>');
+                        /*html.push('<div class="li">');
+                        html.push('<div class="iblock cancel"><button id="cancelBindEmail" class="dadao_btn dadao_btn_lg">取消</button></div>');
+                        html.push('<div class="iblock get_sure"><button id="gotoBindEmail" class="dadao_btn dadao_btn_lg dadao_btn_primary">发送邮箱验证码</button></div>');
+                        html.push('</div>');*/
+                        html.push('</div>');
+                        htmlTree=html.join("");
+                        htmlTreeDom=$(htmlTree).appendTo(box);
+                    });
+                    //发送邮箱验证码验证码
+                    $(document).delegate("#send_email_code","click",function(){
+                        if(isSending){
+                            return;
+                        }
+                        isSending=true;
+                        var result=EmailRegister.test($.trim($("#emailAddress").val()));
+                        if(result){
+                            getPhoneCode();
+                        }else{
+                            alert("请填写正确的邮箱地址");
+                            isSending=false;
+                        }
+                    });
+                    //去绑定
+                    $(document).delegate("#gotoBindEmail","click",function(){
+
+                    });
+                    //取消
+                    $(document).delegate("#cancelBindEmail","click",function(){
+                        htmlTree=null;
+                        htmlTreeDom.remove();
+                        clearInterval(timer);
+                        isSending=false;
+                    });
+                }
+                //绑定微信动画效果
+                bindWX();
+                //绑定手机号码
+                bindPhone();
+                //绑定邮箱地址
+                bindEmail();
+                common.changeHeaderInfo();
+            });
+        </script>
+    </head>
+    <body>
+        <div id="window" class="window">
+            <div id="viewport" class="viewport">
+                <div class="main_content">
+                    <!-- 头部start -->
+                    <header class="header main_header">
+                        <div id="view_header" class="view_header">
+                            <div class="login_info clearfix">
+                                <div class="logo_model fl clearfix">
+                                    <div class="logo_img fl">
+                                        <img class="logo" src="../images/header/logo.png" alt="柏嘉集团" />
+                                    </div>
+                                    <div class="logo_name fl">中交柏嘉生产经营管理系统</div>
+                                </div>
+                                <div class="user fr">
+                                    <div class="user_model">
+                                        <span class="date">2017年8月22日 星期二</span>
+                                        <span class="welcome">欢迎您，<i id="uname">xxx</i> </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    <!-- 头部end -->
+                    <!-- 左侧start -->
+                    <section id="left_menu" class="left_menu">
+                        <div class="view_left_menu">
+                            <div class="left_menu_model">
+                                <ul id="menus_box" class="menus_box">
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="工作台" data-arrow-direction="right" href="./desk.html" target="_self">
+                                            <span class="DaDao DaDao-gongzuotaixuanzhong"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="我发起的" data-arrow-direction="right" href="./project.html" target="_self">
+                                            <span class="DaDao DaDao-xiangmu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="应用中心" data-arrow-direction="right" href="./application.html" target="_self">
+                                            <span class="DaDao DaDao-yingyongzhongxin"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="消息" data-arrow-direction="right" href="./message.html" target="_self">
+                                            <span class="DaDao DaDao-xiaoxi1"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="通讯录" data-arrow-direction="right" href="./maillist.html" target="_self">
+                                            <span class="DaDao DaDao-tongxunlu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="查询" data-arrow-direction="right" href="./query.html" target="_self">
+                                            <span class="DaDao DaDao-dwcxico"></span>
+                                        </a>
+                                    </li>
+                                </ul>
+                                <div class="menu_setting">
+                                    <div class="setting_item setting_u">
+                                        <a class="setting_link" data-tooltip="后台管理" data-arrow-direction="right" href="http://ee-manage-test.baijiakeji.cn/site/login.html" target="admin">
+                                            <span class="DaDao DaDao-houtai-kehuguanli"></span>
+                                        </a>
+                                    </div>
+                                    <!-- <div class="setting_item setting_t">
+                                        <a class="setting_link active" data-tooltip="用户设置" data-arrow-direction="right" href="../htmls/">
+                                            <span class="DaDao DaDao-gerenshezhi"></span>
+                                        </a>
+                                    </div> -->
+                                    <div id="setting_me" class="setting_me">
+                                        <div class="tick">
+                                            <img class="head_pic" src="../images/examples/3401888993773024.jpg" src="" alt="" />
+                                        </div>
+                                        <div style="display:none;" class="ui_user_panel">
+                                            <ul class="ui_user_list">
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',1)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-account"></span>账户资料</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',2)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-password"></span>修改密码</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',3)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-binding"></span>账号绑定</a>
+                                                </li>
+                                                <li class="panel_item bd_none">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',4)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-__"></span>消息提醒</a>
+                                                </li>
+                                                <li class="line"></li>
+                                                <li class="panel_item quot">
+                                                    <a href="javascript:void(0);" onclick="common.toQuot()" class="block atance" target="_self">退出系统</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- 左侧end -->
+                    <!--内容区域start-->
+                    <section id="main_body" class="main_body">
+                        <div class="view_main_body">
+                            <div class="body_inner default_width">
+                                <!-- 个人设置start -->
+                                <div class="personal_setting_view setting_view_box">
+                                    <div class="personal_setting_tab">
+                                        <div class="tab_icon">
+                                            <span class="DaDao DaDao-gerenshezhi"></span>
+                                            账户设置
+                                        </div>
+                                        <div class="center_labels">
+                                            <ul class="iblock clearfix tabob">
+                                                <li class="ST_item">
+                                                    <a class="alink iblock" href="personal_setting.html" target="_self" title="账户资料">账户资料</a>
+                                                </li>
+                                                <li class="ST_item">
+                                                    <a class="alink iblock" href="reset_psd.html" target="_self" title="修改密码">修改密码</a>
+                                                </li>
+                                                <li class="ST_item active">
+                                                    <a class="alink iblock" href="account_bind.html" target="_self" title="账户绑定">帐号绑定</a>
+                                                </li>
+                                                <li class="ST_item">
+                                                    <a class="alink iblock" href="message_tips.html" target="_self" title="消息提醒">消息提醒</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="setting_inner">
+                                        <div class="setting_me_list">
+                                            <!-- 手机号码start -->
+                                            <div class="account_item account_li">
+                                                <div class="cell_title">手机号码</div>
+                                                <div class="account_setting_box clearfix">
+                                                    <div class="fl account_label">
+                                                        修改手机时 大道易图 会发送<br/>
+                                                        短信到新的手机号，请按照短信<br>
+                                                        中的验证码修改你的手机号码。
+                                                    </div>
+                                                    <div id="phoneDIV" class="fl setting_cell">
+                                                        <div class="uname">
+                                                            <div class="iblock key w_auto">当前手机号码为：</div>
+                                                            <div class="iblock value">未设置</div>
+                                                        </div>
+                                                        <div class="change_item">
+                                                            <button id="bindPhone" class="dadao_btn dadao_btn_lg">绑定手机号</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- 手机号码end -->
+                                            <!-- 邮箱地址start -->
+                                            <div class="account_item account_li">
+                                                <div class="cell_title">邮箱地址</div>
+                                                <div class="account_setting_box clearfix">
+                                                    <div class="fl account_label">
+                                                       修改邮箱时 大道易图 会发送<br/>
+                                                       一封邮件到新的邮箱地址，请<br/>
+                                                       按照邮箱中的链接重置你的邮箱。
+                                                    </div>
+                                                    <div id="emailDIV" class="fl setting_cell">
+                                                        <div class="uname">
+                                                            <div class="iblock key w_auto">当前邮箱地址为：</div>
+                                                            <div class="iblock value">未设置</div>
+                                                        </div>
+                                                        <div class="change_item">
+                                                            <button id="bindEmail" class="dadao_btn dadao_btn_lg">绑定邮箱</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- 邮箱地址end -->
+                                            <!-- 微信start -->
+                                            <div class="account_item account_li">
+                                                <div class="cell_title">微信</div>
+                                                <div class="account_setting_box clearfix">
+                                                    <div class="fl account_label">
+                                                        绑定后，可直接使用微信扫描<br/>
+                                                        二维码登录 大道易图，还可以<br/>
+                                                         通过大道易图 微信服务号接收<br/>消息通知。
+                                                    </div>
+                                                    <div class="fl setting_cell">
+                                                        <div class="uname">
+                                                            <div class="iblock key w_auto">当前状态：</div>
+                                                            <div class="iblock value">未绑定</div>
+                                                        </div>
+                                                        <div class="weixin_img_box change_item">
+                                                            <div style="display:none;" id="bindWXBox" class="bind_wx">
+                                                                <div class="hit">绑定微信<div class="fr close">&times;</div></div>
+                                                                <div class="wx_inner">
+                                                                    <img class="imgfigure" src="../images/examples/tmjk_wx.png" alt="" />
+                                                                </div>
+                                                                <p class="state">请使用二维码扫描，完成绑定</p>
+                                                            </div>
+                                                            <button id="bindWX" class="dadao_btn dadao_btn_lg">绑定微信</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- 微信end -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- 个人设置end -->
+                            </div>
+                        </div>
+                    </section>
+                    <!--内容区域end-->
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

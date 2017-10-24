@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <script type="text/javascript" src="../../commonFunc.bundle.js"></script>
+        <script type="text/javascript" src="../scripts/socket.js"></script>
+        <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
+        <script type="text/javascript" src="../scripts/echarts.simple.min.js"></script>
+        <script type="text/javascript" src="../scripts/main.js"></script>
+        <script type="text/javascript" src="../scripts/old.main.js"></script>
+        <script>
+            common.getMsg();
+        </script>
+        <link rel="stylesheet" href="../styles/antd.css" />
+        <link rel="stylesheet" href="../styles/cssrest.css" />
+        <link rel="stylesheet" href="../styles/app.css" />
+        <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_w094gou4uzddkj4i.css" />
+        <link rel="stylesheet" href="../scripts/plugins/webuploader/webuploader.css" />
+        <script src="../scripts/plugins/webuploader/webuploader.js"></script>
+        <script src="../scripts/plugins/webuploader/uploader.js"></script>
+        <script>
+            $(document).ready(function(){
+                if(!common.isLogin){
+                    antdObj.message.info("您还没有登录登录!",1.5,function(){
+                        window.location.href="/";
+                    });
+                    return;
+                }
+                //开启tooltip提示
+                common.tooltip();
+                //左下角头像点击面板
+                common.hoverHeaderPic();
+                var getUserData=function(){
+                    var userLoginInfo=common.storageFunc.get("userLoginInfo");
+                    /*$.ajax({
+                        type:"GET",
+                        url:"http://192.168.0.85:8182/v1/apps/add",
+                        dataType:"json",
+                        crossDomain:true,
+                        headers:{
+                            "Authorization":"Bearer ZWVfeFsK1yw9UpVrNGWzM3S3C9isN0enazJl7LjZXzE1MDYxMzE4MTc="
+                        },
+                        success:function(data){
+                            var regexp=/href=\"([\w\.\/])+\"/img;
+                            $("body").append("<div id='zyw' style='position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;background-color:#f2f2ed;'></div>");
+                            $("#zyw").append(data);
+                            console.log(data);
+                        },
+                        error:function(){
+                            console.log("error",arguments);
+                        }
+                    });
+                    return;*/
+                    if(userLoginInfo==undefined){
+                        let islogin=confirm("您还没有登录，去登录？");
+                        if(islogin){
+                            window.location.href="http://192.168.0.145:8000";
+                        }
+                        return;
+                    }
+                    userLoginInfo=JSON.parse(userLoginInfo);
+                    var token={
+                        Authorization:"Bearer "+userLoginInfo["token"]
+                    }
+                    $.ajax({
+                        type:"GET",
+                        url:"http://ee-api-test.baijiakeji.cn/v1/employees/info",
+                        dataType:"json",
+                        headers:token,
+                        data:{
+                            id:userLoginInfo["user"]["id"]
+                        },
+                        success:function(data){
+                            common.storageFunc.set("userInfoMation",JSON.stringify(data));
+                            pageInit&&pageInit(data);
+                        },
+                        error:function(){
+                            console.log("error");
+                        }
+                    })
+                }
+                var trSexNumToText=function(numOrText,reverse){
+                    let result=null;
+                    if(reverse==true){
+                        switch(numOrText){
+                            case "保密":
+                                result="0";
+                                break;
+                            case "男":
+                                result="1";
+                                break;
+                            case "女":
+                                result="2";
+                                break;
+                            default:
+                                throw new Error("性别只能是：男、女、保密中的一种");
+                        }
+                    }else{
+                        numOrText=numOrText-0;
+                        if(typeof numOrText!=="number"&&numOrText!==numOrText){
+                            throw new Error("参数不是一个数字");
+                            return;
+                        }
+                        switch(numOrText){
+                            case 0:
+                                result="保密";
+                                break;
+                            case 1:
+                                result="男";
+                                break;
+                            case 2:
+                                result="女";
+                                break;
+                            default:
+                                throw new Error("不知是男是女");
+                        }
+                    }
+
+                    return result;
+                }
+                var pageState=new Object();
+                //页面初始化数据
+                var pageInit=function(data){
+                    pageState["nickname"]=data["nickname"];
+                    pageState["full_name"]=data["full_name"];
+                    pageState["age"]=data["age"];
+                    pageState["sex"]=data["sex"];
+                    pageState["position"]=data["position"];
+
+                    $("#changeUNameBox").find(".value").text(pageState["nickname"]);
+                    $("#infoBox").find(".myName").text(pageState["full_name"]);
+                    $("#infoBox").find(".myAge").text(pageState["age"]);
+                    $("#infoBox").find(".myGender").text(trSexNumToText(pageState["sex"]));
+                    $("#infoBox").find(".myPosition").text(pageState["position"]==undefined?"未填写":pageState["position"]);
+                }
+                //编辑用户名
+                var setUname=function(){
+                    var uNameBoxInner=null;
+                    $(document).delegate("#changeUserName","click",function(e){
+                        e.stopPropagation();
+                        e.preventDefault();
+                        var box=$("#changeUNameBox");
+                        var value=$.trim(box.find(".value").text());
+                        value=value=="未填写"?"":value;
+                        var uNameValue=value;
+                        uNameBoxInner=box.html();
+                        box.html('<div class="uname"><input class="unameValue dadao_input dadao_input_lg" type="text" placeholder="请输入新的用户名" value="'+value+'"/></div><div class="uname"><div class="iblock"><button class="getSure dadao_btn dadao_btn_primary dadao_btn_lg">确认修改</button></div><div class="iblock" style="margin-left:30px;"><button class="getCancel dadao_btn dadao_btn_lg">取消</button></div></div>');
+                        box.find(".getSure").on("click",function(){
+                            var value=$.trim(box.find(".unameValue").val());
+                            if(value==0||value==undefined){
+                                alert('请输入一个用户名');
+                                return;
+                            }
+                            uNameValue=value;
+                            box.html(uNameBoxInner);
+                            box.find(".value").text(uNameValue);
+                            pageState["nickname"]=uNameValue;
+                        });
+                        box.find(".getCancel").on("click",function(){
+                            box.html(uNameBoxInner);
+                        });
+                    });
+                }
+                //编辑个人资料
+                var setPersonalInfo=function(){
+                    var infoBoxInnerHTML=null;
+                    $(document).delegate("#setInfoBtn","click",function(){
+                        var box=$("#infoBox");
+                        infoBoxInnerHTML=box.html();
+                        var html='',
+                            name=pageState["nickname"],
+                            position=pageState["position"],
+                            age=pageState["age"],
+                            gender=trSexNumToText(pageState["sex"]),
+                            department=$.trim(box.find(".myDepartment").text()),
+                            sign=$.trim(box.find(".mySign").text());
+                            position=position==undefined?"":position;
+                            department=department==undefined?"":department;
+                            sign=sign==undefined?"":sign;
+                        html+='<div class="me_info_control" style="margin-bottom:15px;">';
+                        html+=    '<input class="getUname dadao_input dadao_input_lg" type="text" placeholder="姓名" value="'+name+'"/>';
+                        html+='</div>';
+                        html+='<div class="me_info_control" style="margin-bottom:15px;">';
+                        html+=    '<input class="getUage dadao_input dadao_input_lg" type="text" placeholder="年龄" value="'+age+'"/>';
+                        html+='</div>';
+                        html+='<div id="gender" class="me_info_control" style="margin-bottom:15px;position:relative;">';
+                        html+=    '<input readonly class="getUgender dadao_input dadao_input_lg" type="text" placeholder="性别" value="'+gender+'"/>';
+                        html+=    '<ul class="dropdown_panel" style="width:100%;display:none;">';
+                        html+=         '<li><a href="#">女</a></li>';
+                        html+=         '<li><a href="#">男</a></li>';
+                        html+=         '<li><a href="#">保密</a></li>';
+                        html+=    '</ul>';
+                        html+='</div>';
+                        html+='<div class="me_info_control" style="margin-bottom:15px;">';
+                        html+=    '<input class="getPo dadao_input dadao_input_lg" type="text" placeholder="职位" value="'+position+'"/>';
+                        html+='</div>';
+                        html+='<div class="me_info_control" style="margin-bottom:15px;">';
+                        html+=    '<input class="getDepart dadao_input dadao_input_lg" type="text" placeholder="部门" value="'+department+'"/>';
+                        html+='</div>';
+                        html+='<div class="me_info_control" style="margin-bottom:15px;">';
+                        html+=    '<textarea style="width:455px;" class="getSign dadao_textarea" type="text" placeholder="个性签名">'+sign+'</textarea>';
+                        html+='</div>';
+                        html+='<div class="me_info_control">';
+                        html+=    '<div class="iblock"><button class="getSure dadao_btn dadao_btn_primary dadao_btn_lg">确认</button></div><div style="margin-left:30px;" class="iblock"><button class="getCancel dadao_btn dadao_btn_lg">取消</button></div>';
+                        html+='</div>';
+                        box.html(html);
+                        box.find(".getSure").on("click",function(){
+                            var namevalue=$.trim(box.find(".getUname").val()),
+                                age=$.trim(box.find(".getUage").val()),
+                                gender=$.trim(box.find(".getUgender").val()),
+                                povalue=$.trim(box.find(".getPo").val()),
+                                departValue=$.trim(box.find(".getDepart").val()),
+                                signValue=$.trim(box.find(".getSign").val());
+                            if(namevalue==0||namevalue==undefined){
+                                alert('请输入一个用户名');
+                                return;
+                            }
+                            if(povalue==0||povalue==undefined){
+                                /*alert('请输入一个职位');
+                                return;*/
+                            }
+                            if(departValue==0||departValue==undefined){
+                                /*alert('请输入一个部门');
+                                return;*/
+                            }
+                            if(signValue==0||signValue==undefined){
+                                /*alert('请输入一个个性签名');
+                                return;*/
+                            }
+                            box.html(infoBoxInnerHTML);
+                            box.find(".myName").text(namevalue);
+                            box.find(".myAge").text(age);
+                            box.find(".myGender").text(gender);
+                            box.find(".myPosition").text(povalue==""||povalue==undefined?"未填写":povalue);
+                            box.find(".myDepartment").text(departValue==""||departValue==undefined?"未填写":departValue);
+                            box.find(".mySign").text(signValue==""||signValue==undefined?"未填写":signValue);
+
+
+                            pageState["full_name"]=namevalue;
+                            pageState["age"]=age;
+                            pageState["sex"]=trSexNumToText(gender,true);
+                            pageState["position"]=povalue;
+
+                            console.log(pageState);
+
+
+                        });
+                        box.find(".getCancel").on("click",function(){
+                            box.html(infoBoxInnerHTML);
+                        });
+                        $("#gender").find("input").on("click",function(e){
+                            e.stopPropagation();
+                            e.preventDefault();
+                            $("#gender").find(".dropdown_panel").show();
+                        });
+                        $("#gender").find("li").on("click",function(e){
+                            e.stopPropagation();
+                            e.preventDefault();
+                            var text=$.trim($(this).text());
+                            $("#gender").find("input").val(text);
+                            $("#gender").find(".dropdown_panel").hide();
+                        });
+                        $(document).on("click",function(){
+                            $("#gender").find(".dropdown_panel").hide();
+                        });
+                    });
+                }
+                //设置用户名
+                setUname();
+                //编辑资料
+                setPersonalInfo();
+                getUserData();
+                common.changeHeaderInfo();
+            });
+        </script>
+    </head>
+    <body>
+        <div id="window" class="window">
+            <div id="viewport" class="viewport">
+                <div class="main_content">
+                    <!-- 头部start -->
+                    <header class="header main_header">
+                        <div id="view_header" class="view_header">
+                            <div class="login_info clearfix">
+                                <div class="logo_model fl clearfix">
+                                    <div class="logo_img fl">
+                                        <img class="logo" src="../images/header/logo.png" alt="柏嘉集团" />
+                                    </div>
+                                    <div class="logo_name fl">中交柏嘉生产经营管理系统</div>
+                                </div>
+                                <div class="user fr">
+                                    <div class="user_model">
+                                        <span class="date">2017年8月22日 星期二</span>
+                                        <span class="welcome">欢迎您，<i id="uname">xxx</i> </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    <!-- 头部end -->
+                    <!-- 左侧start -->
+                    <section id="left_menu" class="left_menu">
+                        <div class="view_left_menu">
+                            <div class="left_menu_model">
+                                <ul id="menus_box" class="menus_box">
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="工作台" data-arrow-direction="right" href="./desk.html" target="_self">
+                                            <span class="DaDao DaDao-gongzuotaixuanzhong"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="我发起的" data-arrow-direction="right" href="./project.html" target="_self">
+                                            <span class="DaDao DaDao-xiangmu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="应用中心" data-arrow-direction="right" href="./application.html" target="_self">
+                                            <span class="DaDao DaDao-yingyongzhongxin"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="消息" data-arrow-direction="right" href="./message.html" target="_self">
+                                            <span class="DaDao DaDao-xiaoxi1"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="通讯录" data-arrow-direction="right" href="./maillist.html" target="_self">
+                                            <span class="DaDao DaDao-tongxunlu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="查询" data-arrow-direction="right" href="./query.html" target="_self">
+                                            <span class="DaDao DaDao-dwcxico"></span>
+                                        </a>
+                                    </li>
+                                </ul>
+                                <div class="menu_setting">
+                                    <div class="setting_item setting_u">
+                                        <a class="setting_link" data-tooltip="后台管理" data-arrow-direction="right" href="http://ee-manage-test.baijiakeji.cn/site/login.html" target="admin">
+                                            <span class="DaDao DaDao-houtai-kehuguanli"></span>
+                                        </a>
+                                    </div>
+                                    <!-- <div class="setting_item setting_t">
+                                        <a class="setting_link active" data-tooltip="用户设置" data-arrow-direction="right" href="../htmls/">
+                                            <span class="DaDao DaDao-gerenshezhi"></span>
+                                        </a>
+                                    </div> -->
+                                    <div id="setting_me" class="setting_me">
+                                        <div class="tick">
+                                            <img class="head_pic" src="../images/examples/3401888993773024.jpg" src="" alt="" />
+                                        </div>
+                                        <div style="display:none;" class="ui_user_panel">
+                                            <ul class="ui_user_list">
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',1)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-account"></span>账户资料</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',2)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-password"></span>修改密码</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',3)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-binding"></span>账号绑定</a>
+                                                </li>
+                                                <li class="panel_item bd_none">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',4)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-__"></span>消息提醒</a>
+                                                </li>
+                                                <li class="line"></li>
+                                                <li class="panel_item quot">
+                                                    <a href="javascript:void(0);" onclick="common.toQuot()" class="block atance" target="_self">退出系统</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- 左侧end -->
+                    <!--内容区域start-->
+                    <section id="main_body" class="main_body">
+                        <div class="view_main_body">
+                            <div class="body_inner default_width">
+                                <!-- 个人设置start -->
+                                <div class="personal_setting_view setting_view_box">
+                                    <div class="personal_setting_tab">
+                                        <div class="tab_icon">
+                                            <span class="DaDao DaDao-gerenshezhi"></span>
+                                            账户设置
+                                        </div>
+                                        <div class="center_labels">
+                                            <ul class="iblock clearfix tabob">
+                                                <li class="ST_item active">
+                                                    <a class="alink iblock" href="personal_setting.html" target="_self" title="账户资料">账户资料</a>
+                                                </li>
+                                                <li class="ST_item">
+                                                    <a class="alink iblock" href="reset_psd.html" target="_self" title="修改密码">修改密码</a>
+                                                </li>
+                                                <li class="ST_item">
+                                                    <a class="alink iblock" href="account_bind.html" target="_self" title="账户绑定">帐号绑定</a>
+                                                </li>
+                                                <li class="ST_item">
+                                                    <a class="alink iblock" href="message_tips.html" target="_self" title="消息提醒">消息提醒</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="setting_inner">
+                                        <div class="setting_me_list">
+                                            <!-- 头像设置start -->
+                                            <div class="account_item account_li">
+                                                <div class="cell_title">头像设置</div>
+                                                <div class="account_setting_box clearfix">
+                                                    <div class="fl account_label">
+                                                        选择一张个人正面照片作为头像，<br/>
+                                                        让其他成员更容易认识你。
+                                                    </div>
+                                                    <div id="uploader_view" class="fl setting_cell">
+                                                        <div class="img_box iblock">
+                                                            <img class="aimg" src="../images/examples/3401888993773024.jpg" alt="" />
+                                                        </div>
+                                                        <div class="setting_btn iblock uploader-container">
+                                                            <label id="filePicker" class="dadao_btn dadao_btn_lg">
+                                                                设置头像
+                                                            </label>
+                                                        </div>
+                                                        <!-- <div class="setting_btn iblock">
+                                                            <button class="dadao_btn dadao_btn_lg">移除头像</button>
+                                                        </div> -->
+                                                        <div class="fileUpLoaderPanel">
+                                                            <div class="cropper-wraper webuploader-element-invisible">
+                                                                <div class="img-container">
+                                                                    <img src="" alt="" />
+                                                                </div>
+
+                                                                <div class="uploader_btn_group">
+                                                                    <div id="cancel" class="cancel dadao_btn dadao_btn_lg">取消</div>
+                                                                    <div id="upload-btn" class="upload-btn save dadao_btn dadao_btn_lg dadao_btn_primary">保存</div>
+                                                                </div>
+
+                                                                <div class="img-preview"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- 头像设置end -->
+                                            <!-- 用户名start -->
+                                            <div class="account_item account_li">
+                                                <div class="cell_title">用户名</div>
+                                                <div class="account_setting_box clearfix">
+                                                    <div class="fl account_label">
+                                                        一个好的用户名，<br/>会让人迅速记着你。
+                                                    </div>
+                                                    <div id="changeUNameBox" class="fl setting_cell">
+                                                        <div class="uname">
+                                                            <div class="iblock key">当前用户名：</div>
+                                                            <div class="iblock value">zxd123</div>
+                                                        </div>
+                                                        <div class="change_item">
+                                                            <button id="changeUserName" class="dadao_btn dadao_btn_lg">修改用户名</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- 用户名end -->
+                                            <!-- 个人资料start -->
+                                            <div class="account_item account_li">
+                                                <div class="cell_title">个人资料</div>
+                                                <div class="account_setting_box clearfix">
+                                                    <div class="fl account_label">&nbsp;</div>
+                                                    <div id="infoBox" class="fl setting_cell">
+                                                        <div class="me_info_control">
+                                                            <div class="control_label iblock">姓名：</div>
+                                                            <div class="control_input iblock myName">朱新东</div>
+                                                        </div>
+                                                        <div class="me_info_control">
+                                                            <div class="control_label iblock">年龄：</div>
+                                                            <div class="control_input iblock myAge">26</div>
+                                                        </div>
+                                                        <div class="me_info_control">
+                                                            <div class="control_label iblock">性别：</div>
+                                                            <div class="control_input iblock myGender">男</div>
+                                                        </div>
+                                                        <div class="me_info_control">
+                                                            <div class="control_label iblock">职位：</div>
+                                                            <div class="control_input iblock myPosition">未填写</div>
+                                                        </div>
+                                                        <div class="me_info_control">
+                                                            <div class="control_label iblock">部门：</div>
+                                                            <div class="control_input iblock myDepartment">未填写</div>
+                                                        </div>
+                                                        <div class="me_info_control">
+                                                            <div class="control_label iblock">个性签名：</div>
+                                                            <div class="control_input iblock sign mySign">小蚂蚁掉眼泪，那都不是事！</div>
+                                                        </div>
+                                                        <div class="change_item info_setting_btn">
+                                                            <button id="setInfoBtn" class="dadao_btn dadao_btn_lg">编辑个人资料</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- 个人资料end -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- 个人设置end -->
+                            </div>
+                        </div>
+                    </section>
+                    <!--内容区域end-->
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

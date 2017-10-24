@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <script type="text/javascript" src="../../commonFunc.bundle.js"></script>
+        <script type="text/javascript" src="../scripts/socket.js"></script>
+        <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
+        <script type="text/javascript" src="../scripts/echarts.simple.min.js"></script>
+        <script type="text/javascript" src="../scripts/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="../scripts/main.js"></script>
+        <script type="text/javascript" src="../scripts/old.main.js"></script>
+        <script>
+            common.getMsg();
+        </script>
+        <link rel="stylesheet" href="../styles/antd.css" />
+        <link rel="stylesheet" href="../styles/cssrest.css" />
+        <link rel="stylesheet" href="../styles/app.css" />
+        <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_w094gou4uzddkj4i.css" />
+        <script>
+            $(document).ready(function(){
+                if(!common.isLogin){
+                    antdObj.message.info("您还没有登录登录!",1.5,function(){
+                        window.location.href="/";
+                    });
+                    return;
+                }
+                //开启tooltip提示
+                common.tooltip();
+                //经营过程录入
+                var manage_getIn=function(){
+                    var dialog=null;
+                    var html= '<div id="manage_getIn" class="manage_getIn">';
+                        html+=    '<div class="dadao_modal_mask"></div>';
+                        html+=    '<div id="project_dialog" class="project_dialog">';
+                        html+=        '<div class="project_dia_tit">经营过程录入<div class="fr"><a class="iblock btn_close" href="javascript:void(0);">&times;</a></div></div>';
+                        html+=        '<div class="form_panel">';
+                        html+=            '<div class="form_control"><label class="iblock form_label vertop">经营情况描述</label><div class="iblock form_input"><textarea class="dadao_textarea" placeholder="输入详细过程信息"></textarea></div></div>';
+                        html+=            '<div class="form_control"><label class="iblock form_label">经营工作计划</label><div class="iblock form_input"><label class="dadao_input_file daodao_inout_hoverinfo"><div class="add_btn"></div><div class="itxt">选择文件</div><input type="file"></label></div></div>';
+                        html+=            '<div class="form_control"><label class="iblock form_label">经办人</label><div class="iblock form_input"><input class="dadao_input" value="张三" readonly="readonly"/></div></div>';
+                        html+=            '<div class="form_control"><label class="iblock form_label">经办时间</label><div class="iblock form_input"><input class="dadao_input" value="2017-08-28" readonly="readonly"/></div></div>';
+                        html+=            '<div class="form_control"><label class="iblock form_label"></label><div class="iblock form_input"><div class="iblock btn"><button class="btn_sure dadao_btn dadao_btn_info">确定</button></div><div class="iblock btn"><button class="btn_cancel dadao_btn dadao_btn_default hover_none">取消</button></div></div></div>';
+                        html+=        '</div>';
+                        html+=    '</div>';
+                        html+='</div>';
+                        $("#manageGetIn").on("click",function(){
+                            $("body").append(html);
+                            dialog=$("#project_dialog");
+                            dialog.draggable({
+                                "handle":".project_dia_tit"
+                            });
+                            dialog.addClass("antZoomIn");
+                            dialog.get(0).addEventListener&&dialog.get(0).addEventListener("animationend",function(){
+                                dialog.removeClass("antZoomIn");
+                            },false);
+                        });
+                        $(document).delegate("#manage_getIn .btn_close","click",function(e){
+                            e.stopPropagation();
+                            e.preventDefault();
+                            dialog.addClass("antZoomOut");
+                            dialog.get(0).addEventListener&&dialog.get(0).addEventListener("animationend",function(){
+                                dialog.removeClass("antZoomOut");
+                                $("#manage_getIn").remove();
+                            },false);
+                            setTimeout(function(){
+                                $("#manage_getIn").remove();
+                            },300);
+                        });
+                        $(document).delegate("#manage_getIn .btn_cancel","click",function(){
+                            $("#manage_getIn .btn_close").trigger("click");
+                        });
+                        $(document).delegate("#manage_getIn .dadao_modal_mask","click",function(e){
+                            e.stopPropagation();
+                            e.preventDefault();
+                            dialog.addClass("antZoomOut");
+                            dialog.get(0).addEventListener&&dialog.get(0).addEventListener("animationend",function(){
+                                dialog.removeClass("antZoomOut");
+                                $("#manage_getIn").remove();
+                            },false);
+                            setTimeout(function(){
+                                $("#manage_getIn").remove();
+                            },300);
+                        });
+                }
+                manage_getIn();
+                //左下角头像点击面板
+                common.hoverHeaderPic();
+                common.changeHeaderInfo();
+            });
+        </script>
+    </head>
+    <body>
+        <div id="window" class="window">
+            <div id="viewport" class="viewport">
+                <div class="main_content">
+                    <!-- 头部start -->
+                    <header class="header main_header">
+                        <div id="view_header" class="view_header">
+                            <div class="login_info clearfix">
+                                <div class="logo_model fl clearfix">
+                                    <div class="logo_img fl">
+                                        <img class="logo" src="../images/header/logo.png" alt="柏嘉集团" />
+                                    </div>
+                                    <div class="logo_name fl">中交柏嘉生产经营管理系统</div>
+                                </div>
+                                <div class="user fr">
+                                    <div class="user_model">
+                                        <span class="date">2017年8月22日 星期二</span>
+                                        <span class="welcome">欢迎您，<i id="uname">xxx</i> </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    <!-- 头部end -->
+                    <!-- 左侧start -->
+                    <section id="left_menu" class="left_menu">
+                        <div class="view_left_menu">
+                            <div class="left_menu_model">
+                                <ul id="menus_box" class="menus_box">
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="工作台" data-arrow-direction="right" href="./desk.html" target="_self">
+                                            <span class="DaDao DaDao-gongzuotaixuanzhong"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item active">
+                                        <a class="menu_link" data-tooltip="我发起的" data-arrow-direction="right" href="./project.html" target="_self">
+                                            <span class="DaDao DaDao-xiangmu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="应用中心" data-arrow-direction="right" href="./application.html" target="_self">
+                                            <span class="DaDao DaDao-yingyongzhongxin"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="消息" data-arrow-direction="right" href="./message.html" target="_self">
+                                            <span class="DaDao DaDao-xiaoxi1"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="通讯录" data-arrow-direction="right" href="./maillist.html" target="_self">
+                                            <span class="DaDao DaDao-tongxunlu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="查询" data-arrow-direction="right" href="./query.html" target="_self">
+                                            <span class="DaDao DaDao-dwcxico"></span>
+                                        </a>
+                                    </li>
+                                </ul>
+                                <div class="menu_setting">
+                                    <div class="setting_item setting_u">
+                                        <a class="setting_link" data-tooltip="后台管理" data-arrow-direction="right" href="http://ee-manage-test.baijiakeji.cn/site/login.html" target="admin">
+                                            <span class="DaDao DaDao-houtai-kehuguanli"></span>
+                                        </a>
+                                    </div>
+                                    <!-- <div class="setting_item setting_t">
+                                        <a class="setting_link" data-tooltip="用户设置" data-arrow-direction="right" href="javascript:void(0);">
+                                            <span class="DaDao DaDao-gerenshezhi"></span>
+                                        </a>
+                                    </div> -->
+                                    <div id="setting_me" class="setting_me">
+                                        <div class="tick">
+                                            <img class="head_pic" src="../images/examples/3401888993773024.jpg" src="" alt="" />
+                                        </div>
+                                        <div style="display:none;" class="ui_user_panel">
+                                            <ul class="ui_user_list">
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',1)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-account"></span>账户资料</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',2)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-password"></span>修改密码</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',3)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-binding"></span>账号绑定</a>
+                                                </li>
+                                                <li class="panel_item bd_none">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',4)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-__"></span>消息提醒</a>
+                                                </li>
+                                                <li class="line"></li>
+                                                <li class="panel_item quot">
+                                                    <a href="javascript:void(0);" onclick="common.toQuot()" class="block atance" target="_self">退出系统</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- 左侧end -->
+                    <!--内容区域start-->
+                    <section id="main_body" class="main_body">
+                        <div class="view_main_body">
+                            <div class="body_inner default_width">
+                                <div class="project_content">
+                                    <!-- 经营过程录入start -->
+                                    <div class="get_in_manage inmanage">
+                                        <div class="w772 DD_panel manage_inner_window">
+                                            <div class="manage_h2">****滨江路二期工程优化设计项目</div>
+                                            <div class="get_in get_in_btnbox">
+                                                <div id="manageGetIn" class="getin_btn">
+                                                    <div class="icon_add"></div>
+                                                    <div class="state_text">经营过程录入</div>
+                                                </div>
+                                            </div>
+                                            <div class="manage_getin_detail DD_panel">
+                                                <div class="dynamic_inner_content">
+                                                    <div class="dynamic_list">
+                                                        <div class="dynamic_item">
+                                                            <h2 class="date">今天（2017-9-28 周四）</h2>
+                                                            <ul class="item_time_line">
+                                                                <li class="time_li clearfix">
+                                                                    <div class="ball"></div>
+                                                                    <div class="i_time fl">17:31</div>
+                                                                    <div class="menber_dynic fl">
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在项目团队中建了新任务</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在项目团队中建了新任务</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述</div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                    </div>
+                                                                </li>
+                                                                <li class="time_li clearfix">
+                                                                    <div class="ball"></div>
+                                                                    <div class="i_time fl">15:31</div>
+                                                                    <div class="menber_dynic fl">
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                                <span class="i_band">中添加了新成员</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">fengjianjian</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                                <span class="i_band">中添加了新成员</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">fengjianjian</div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                    </div>
+                                                                </li>
+                                                                <li class="time_li clearfix">
+                                                                    <div class="ball"></div>
+                                                                    <div class="i_time fl">11:31</div>
+                                                                    <div class="menber_dynic fl">
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">创建了项目团队</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc"></div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">创建了项目团队</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc"></div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </li>
+                                                                <li class="time_li clearfix">
+                                                                    <div class="ball"></div>
+                                                                    <div class="i_time fl">11:31</div>
+                                                                    <div class="menber_dynic fl">
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                                <span class="i_band">添加了附件</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">关于附件的描述关于附件的描述关于附件的描述</div>
+                                                                                <div class="bind_fj">
+                                                                                    结构工程.pdf
+                                                                                    <a download="经营计划.pdf" href="../styles/cssrest.css" class="dadao_btn dadao_btn_sm"><span class="DaDao DaDao-download"></span>下载</a>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                        <div class="dynamic_item">
+                                                            <h2 class="date">昨天（2017-9-27 周三）</h2>
+                                                            <ul class="item_time_line">
+                                                                <li class="time_li clearfix">
+                                                                    <div class="ball"></div>
+                                                                    <div class="i_time fl">17:31</div>
+                                                                    <div class="menber_dynic fl">
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在项目团队中建了新任务</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在项目团队中建了新任务</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在项目团队中建了新任务</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述</div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </li>
+                                                                <li class="time_li clearfix">
+                                                                    <div class="ball"></div>
+                                                                    <div class="i_time fl">15:31</div>
+                                                                    <div class="menber_dynic fl">
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                                <span class="i_band">中添加了新成员</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">fengjianjian</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                                <span class="i_band">中添加了新成员</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">fengjianjian</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                                <span class="i_band">中添加了新成员</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">fengjianjian</div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </li>
+                                                                <li class="time_li clearfix">
+                                                                    <div class="ball"></div>
+                                                                    <div class="i_time fl">11:31</div>
+                                                                    <div class="menber_dynic fl">
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">创建了项目团队</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc"></div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">创建了项目团队</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc"></div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">创建了项目团队</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc"></div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                        <div class="dynamic_item">
+                                                            <h2 class="date">前天（2017-9-26 周二）</h2>
+                                                            <ul class="item_time_line">
+                                                                <li class="time_li clearfix">
+                                                                    <div class="ball"></div>
+                                                                    <div class="i_time fl">17:31</div>
+                                                                    <div class="menber_dynic fl">
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在项目团队中建了新任务</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在项目团队中建了新任务</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在项目团队中建了新任务</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述任务描述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述述任务描述任务描述</div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </li>
+                                                                <li class="time_li clearfix">
+                                                                    <div class="ball"></div>
+                                                                    <div class="i_time fl">15:31</div>
+                                                                    <div class="menber_dynic fl">
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                                <span class="i_band">中添加了新成员</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">fengjianjian</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                                <span class="i_band">中添加了新成员</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">fengjianjian</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">在</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                                <span class="i_band">中添加了新成员</span>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc">fengjianjian</div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </li>
+                                                                <li class="time_li clearfix">
+                                                                    <div class="ball"></div>
+                                                                    <div class="i_time fl">11:31</div>
+                                                                    <div class="menber_dynic fl">
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">创建了项目团队</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc"></div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">创建了项目团队</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc"></div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="de_term">
+                                                                            <div class="new_dynic_tit">
+                                                                                <a class="imenber" href="#" target="_self">xxx</a>
+                                                                                <span class="i_band">创建了项目团队</span>
+                                                                                <a class="iteam" href="#" target="_self">xxx项目公路设计团队</a>
+                                                                            </div>
+                                                                            <div class="dynic_desc">
+                                                                                <div class="i_desc"></div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- <div class="getin_cell getin_detail">
+                                                    <div class="prt_hick">2015-08-25</div>
+                                                    <div class="rect_padding boom_pack">
+                                                        <ul class="pro_list manage_list">
+                                                            <li class="manage_one">
+                                                                <span class="date">13:25:48</span>
+                                                                <a class="d_menber" href="#" target="menber">经营人员xxx</a>
+                                                                <span class="colortext">录入经营过程</span>
+                                                                <span class="manage_project">过程描述过程描述过程描述过程描述过程描述。。。</span>
+                                                                <a href="javascript:void(0);" class="get_more">【详细】</a>
+                                                            </li>
+                                                            <li class="manage_one">
+                                                                <span class="date">13:25:48</span>
+                                                                <a class="d_menber" href="#" target="menber">经营人员xxx</a>
+                                                                <span class="colortext">录入经营过程</span>
+                                                                <span class="manage_project">过程描述过程描述过程描述过程描述过程描述。。。</span>
+                                                                <a href="javascript:void(0);" class="get_more">【详细】</a>
+                                                            </li>
+                                                            <li class="manage_one">
+                                                                <span class="date">13:25:48</span>
+                                                                <a class="d_menber" href="#" target="menber">经营人员xxx</a>
+                                                                <span class="colortext">录入经营过程</span>
+                                                                <span class="manage_project">过程描述过程描述过程描述过程描述过程描述。。。</span>
+                                                                <a href="javascript:void(0);" class="get_more">【详细】</a>
+                                                            </li>
+                                                            <li class="manage_one">
+                                                                <span class="date">13:25:48</span>
+                                                                <a class="d_menber" href="#" target="menber">经营人员xxx</a>
+                                                                <span class="colortext">录入经营过程</span>
+                                                                <span class="manage_project">过程描述过程描述过程描述过程描述过程描述。。。</span>
+                                                                <a href="javascript:void(0);" class="get_more">【详细】</a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </div> -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- 经营过程录入end -->
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!--内容区域end-->
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

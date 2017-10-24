@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>大道易图企业版</title>
+    <link rel="stylesheet" href="styles/antd.min.css" />
+    <link rel="stylesheet" href="styles/app.css" />
+    <script>
+        if (typeof String.prototype.endsWith != 'function') {
+            String.prototype.endsWith = function(suffix) {
+                return this.indexOf(suffix, this.length - suffix.length) !== -1;
+            };
+        }
+        if (typeof String.prototype.startsWith != 'function') {
+            String.prototype.startsWith = function (prefix){
+                return this.slice(0, prefix.length) === prefix;
+            };
+        }
+    </script>
+</head>
+<body>
+<!-- <div id="index-loading" class="index-loading loading-show">
+    <div class="cube-box">
+        <ul class="cube">
+            <li class="front"></li>
+            <li class="back"></li>
+            <li class="right"></li>
+            <li class="left"></li>
+            <li class="top"></li>
+            <li class="bottom"></li>
+        </ul>
+        <div class="cube-text">大道易图企业版正在启动……</div>
+    </div>
+</div> -->
+<div id="is-low-ie" class="low-level-ie">
+    <div class="tip-text">该浏览器版本过低，无法体现功能，请前往下载最新浏览器。</div>
+</div>
+<div id="root"></div>
+<script src="./main.bundle.js"></script>
+</body>
+</html>

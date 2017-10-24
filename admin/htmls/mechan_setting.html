@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_fwltmksis4viy66r.css" />
+        <link rel="stylesheet" href="../styles/cssrest.css" />
+        <link rel="stylesheet" href="../styles/bootstrap.min.css" />
+        <link rel="stylesheet" href="../styles/admin.css" />
+        <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
+        <script>
+            $(document).ready(function(){
+                //树形结构交互
+                var tree_node=function(){
+                    var tree=$("#tree_node");
+                    var caret=tree.find(".ant-select-tree-switcher_open");
+                    var node=tree.find(".ant-select-tree-node-content-wrapper");
+                    caret.on("click",function(){
+                        var isopen=$(this).is(".ant-select-tree-switcher_open");
+                        if(isopen){
+                            $(this).removeClass("ant-select-tree-switcher_open").addClass("ant-select-tree-switcher_close");
+                            $(this).siblings("ul").removeClass("ant-select-tree-child-tree-open");
+                        }else{
+                            $(this).removeClass("ant-select-tree-switcher_close").addClass("ant-select-tree-switcher_open");
+                            $(this).siblings("ul").addClass("ant-select-tree-child-tree-open");
+                        }
+                    });
+                    node.on("click",function(){
+                        var text=$.trim($(this).text());
+                        alert("选中了："+text);
+                    });
+                }
+                tree_node();
+            });
+        </script>
+    </head>
+    <body>
+        <div class="left_menus">
+            <div class="logo"></div>
+            <ul class="menu_list">
+                <li class="menu_item">
+                    <a href="./company_setting.html" class="item block" target="_self">企业设置</a>
+                </li>
+                <li class="menu_item">
+                    <a href="./mechan_setting.html" class="item block active" target="_self">组织机构</a>
+                </li>
+                <li class="menu_item">
+                    <a href="./menber_manage.html" class="item block" target="_self">账号管理</a>
+                </li>
+                <li class="menu_item">
+                    <a href="./user_power.html" class="item block" target="_self">角色权限</a>
+                </li>
+                <li class="menu_item">
+                    <a href="./manage.html" class="item block" target="_self">管理审批</a>
+                </li>
+            </ul>
+        </div>
+        <div class="main_body">
+            <div class="pender_header">
+                <div class="iblock render_img"><img src="../images/header_small_icon_2.png" alt="" /></div>
+                <div class="iblock text">组织机构</div>
+            </div>
+            <div class="menber">
+                <div class="menber_view_box">
+                    <div class="display_box">
+                        <div class="ui_group">
+                            <div class="outter_wapper">
+                                <div class="iblock">
+                                    <button class="btn btn-info btn-sm">添加部门</button>
+                                </div><!--
+                                <div class="iblock">
+                                    <button class="btn btn-info btn-sm">添加子部门</button>
+                                </div> -->
+                            </div>
+                            <div id="tree_node" class="ant-select-dropdown ant-select-tree-dropdown ant-select-dropdown--single ant-select-dropdown-placement-bottomLeft">
+                                <div>
+                                    <ul class="ant-select-tree" role="tree-node" unselectable="true">
+                                        <li class="">
+                                            <span class="ant-select-tree-switcher ant-select-tree-switcher_open"></span>
+                                            <span title="parent 1" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-open">
+                                                <span class="ant-select-tree-title">中交柏嘉工程技术研究院</span>
+                                            </span>
+                                            <ul class="ant-select-tree-child-tree ant-select-tree-child-tree-open" data-expanded="true">
+                                                <li class="">
+                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher_open">
+                                                    </span>
+                                                    <span title="parent 1-0" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-open">
+                                                        <span class="ant-select-tree-title">生产部</span>
+                                                    </span>
+                                                    <ul class="ant-select-tree-child-tree ant-select-tree-child-tree-open" data-expanded="true">
+                                                        <li class="">
+                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop"></span>
+                                                            <span title="my leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                <span class="ant-select-tree-title">西安分院</span>
+                                                            </span>
+                                                        </li>
+                                                        <li class="">
+                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                            </span>
+                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                <span class="ant-select-tree-title">四川分院</span>
+                                                            </span>
+                                                        </li>
+                                                        <li class="">
+                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                            </span>
+                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                <span class="ant-select-tree-title">武汉分院</span>
+                                                            </span>
+                                                        </li>
+                                                        <li class="">
+                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                            </span>
+                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                <span class="ant-select-tree-title">浙江分院</span>
+                                                            </span>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                                <li class="">
+                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher_open"></span>
+                                                    <span title="parent 1-1" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-open">
+                                                        <span class="ant-select-tree-title">经营部</span>
+                                                    </span>
+                                                    <ul class="ant-select-tree-child-tree ant-select-tree-child-tree-open" data-expanded="true">
+                                                        <li class="">
+                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                            </span>
+                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                <span class="ant-select-tree-title">生产经营管理部</span>
+                                                            </span>
+                                                        </li>
+                                                        <li class="">
+                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                            </span>
+                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                <span class="ant-select-tree-title">技术质量管理部</span>
+                                                            </span>
+                                                        </li>
+                                                        <li class="">
+                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                            </span>
+                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                <span class="ant-select-tree-title">财务管理部</span>
+                                                            </span>
+                                                        </li>
+                                                        <li class="">
+                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                            </span>
+                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                <span class="ant-select-tree-title">法律审查部</span>
+                                                            </span>
+                                                        </li>
+                                                        <li class="">
+                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                            </span>
+                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                <span class="ant-select-tree-title">行政管理部</span>
+                                                            </span>
+                                                        </li>
+                                                        <li class="">
+                                                            <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                            </span>
+                                                            <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                                <span class="ant-select-tree-title">总裁办</span>
+                                                            </span>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                                <li class="">
+                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                    </span>
+                                                    <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                        <span class="ant-select-tree-title">管理部</span>
+                                                    </span>
+                                                </li>
+                                                <li class="">
+                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher-noop">
+                                                    </span>
+                                                    <span title="your leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                        <span class="ant-select-tree-title">科技部</span>
+                                                    </span>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="menber_inner">
+                            <div class="menber_ui_window">
+                                <div class="tit">中交柏嘉工程技术研究院（50人）</div>
+                                <div class="menber_table">
+                                    <div class="clearfix">
+                                        <div class="pull-left btn-group-menber search_bool">
+                                            <div class="form-group has-feedback">
+                                                <input type="text" class="form-control" id="inputSuccess3" aria-describedby="inputSuccess3Status" placeholder="输入姓名进行搜索">
+                                                <span class="glyphicon glyphicon-search form-control-feedback" aria-hidden="true"></span>
+                                            </div>
+
+                                            <!-- <div class="form-group has-feedback">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="inputGroupSuccess1" aria-describedby="inputGroupSuccess1Status" placeholder="输入姓名进行搜索">
+                                                </div>
+                                                <span class="glyphicon glyphicon-search form-control-feedback" aria-hidden="true"></span>
+                                                <span id="inputGroupSuccess1Status" class="sr-only">(success)</span>
+                                            </div> -->
+                                        </div>
+                                        <div class="pull-right btn_group">
+                                            <div class="iblock">
+                                                <button class="btn btn-success"><span class="glyphicon glyphicon-plus"></span>添加人员</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="table_bar">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th><input type="checkbox" /></th>
+                                                    <th>序号</th>
+                                                    <th>姓名</th>
+                                                    <th>手机号码</th>
+                                                    <th>邮箱</th>
+                                                    <th>所在部门</th>
+                                                    <th>用户名</th>
+                                                    <th>密码</th>
+                                                    <th>工号</th>
+                                                    <th>角色</th>
+                                                    <th width="240">操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><input type="checkbox" /></td>
+                                                    <td>1</td>
+                                                    <td>刘长天</td>
+                                                    <td>13484538788</td>
+                                                    <td>xxxxxxx</td>
+                                                    <td>中交柏嘉工程技术</td>
+                                                    <td>002</td>
+                                                    <td>liuct</td>
+                                                    <td>123456</td>
+                                                    <td>分管生产副院长</td>
+                                                    <td>
+                                                        <div class="">
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-edit"></span>修改
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-trash"></span>删除
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-hand-up"></span>设为主管
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><input type="checkbox" /></td>
+                                                    <td>1</td>
+                                                    <td>刘长天</td>
+                                                    <td>13484538788</td>
+                                                    <td>xxxxxxx</td>
+                                                    <td>中交柏嘉工程技术</td>
+                                                    <td>002</td>
+                                                    <td>liuct</td>
+                                                    <td>123456</td>
+                                                    <td>分管生产副院长</td>
+                                                    <td>
+                                                        <div class="">
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-edit"></span>修改
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-trash"></span>删除
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-hand-up"></span>设为主管
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><input type="checkbox" /></td>
+                                                    <td>1</td>
+                                                    <td>刘长天</td>
+                                                    <td>13484538788</td>
+                                                    <td>xxxxxxx</td>
+                                                    <td>中交柏嘉工程技术</td>
+                                                    <td>002</td>
+                                                    <td>liuct</td>
+                                                    <td>123456</td>
+                                                    <td>分管生产副院长</td>
+                                                    <td>
+                                                        <div class="">
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-edit"></span>修改
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-trash"></span>删除
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-hand-up"></span>设为主管
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><input type="checkbox" /></td>
+                                                    <td>1</td>
+                                                    <td>刘长天</td>
+                                                    <td>13484538788</td>
+                                                    <td>xxxxxxx</td>
+                                                    <td>中交柏嘉工程技术</td>
+                                                    <td>002</td>
+                                                    <td>liuct</td>
+                                                    <td>123456</td>
+                                                    <td>分管生产副院长</td>
+                                                    <td>
+                                                        <div class="">
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-edit"></span>修改
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-trash"></span>删除
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-hand-up"></span>设为主管
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><input type="checkbox" /></td>
+                                                    <td>1</td>
+                                                    <td>刘长天</td>
+                                                    <td>13484538788</td>
+                                                    <td>xxxxxxx</td>
+                                                    <td>中交柏嘉工程技术</td>
+                                                    <td>002</td>
+                                                    <td>liuct</td>
+                                                    <td>123456</td>
+                                                    <td>分管生产副院长</td>
+                                                    <td>
+                                                        <div class="">
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-edit"></span>修改
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-trash"></span>删除
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-hand-up"></span>设为主管
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><input type="checkbox" /></td>
+                                                    <td>1</td>
+                                                    <td>刘长天</td>
+                                                    <td>13484538788</td>
+                                                    <td>xxxxxxx</td>
+                                                    <td>中交柏嘉工程技术</td>
+                                                    <td>002</td>
+                                                    <td>liuct</td>
+                                                    <td>123456</td>
+                                                    <td>分管生产副院长</td>
+                                                    <td>
+                                                        <div class="">
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-edit"></span>修改
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-trash"></span>删除
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-hand-up"></span>设为主管
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><input type="checkbox" /></td>
+                                                    <td>1</td>
+                                                    <td>刘长天</td>
+                                                    <td>13484538788</td>
+                                                    <td>xxxxxxx</td>
+                                                    <td>中交柏嘉工程技术</td>
+                                                    <td>002</td>
+                                                    <td>liuct</td>
+                                                    <td>123456</td>
+                                                    <td>分管生产副院长</td>
+                                                    <td>
+                                                        <div class="">
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-edit"></span>修改
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-trash"></span>删除
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-hand-up"></span>设为主管
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><input type="checkbox" /></td>
+                                                    <td>1</td>
+                                                    <td>刘长天</td>
+                                                    <td>13484538788</td>
+                                                    <td>xxxxxxx</td>
+                                                    <td>中交柏嘉工程技术</td>
+                                                    <td>002</td>
+                                                    <td>liuct</td>
+                                                    <td>123456</td>
+                                                    <td>分管生产副院长</td>
+                                                    <td>
+                                                        <div class="">
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-edit"></span>修改
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-trash"></span>删除
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-hand-up"></span>设为主管
+                                                            </a>
+                                                        </div>ton class="btn btn-default btn-sm"><span class="glyphicon glyphicon-trash"></span>删除</button>
+                                                        <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-hand-up"></span>设为主管</button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><input type="checkbox" /></td>
+                                                    <td>1</td>
+                                                    <td>刘长天</td>
+                                                    <td>13484538788</td>
+                                                    <td>xxxxxxx</td>
+                                                    <td>中交柏嘉工程技术</td>
+                                                    <td>002</td>
+                                                    <td>liuct</td>
+                                                    <td>123456</td>
+                                                    <td>分管生产副院长</td>
+                                                    <td>
+                                                        <div class="">
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-edit"></span>修改
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-trash"></span>删除
+                                                            </a>
+                                                            <a href="#" class="iblock">
+                                                                <span class="glyphicon glyphicon-hand-up"></span>设为主管
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

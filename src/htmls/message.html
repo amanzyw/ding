@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <script type="text/javascript" src="../../commonFunc.bundle.js"></script>
+        <script type="text/javascript" src="../scripts/socket.js"></script>
+        <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
+        <script type="text/javascript" src="../scripts/echarts.simple.min.js"></script>
+        <script type="text/javascript" src="../scripts/main.js"></script>
+        <script type="text/javascript" src="../scripts/old.main.js"></script>
+        <script>
+            common.getMsg();
+        </script>
+        <link rel="stylesheet" href="../styles/antd.css" />
+        <link rel="stylesheet" href="../styles/cssrest.css" />
+        <link rel="stylesheet" href="../styles/app.css" />
+        <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_w094gou4uzddkj4i.css" />
+        <script>
+            $(document).ready(function(){
+                if(!common.isLogin){
+                    antdObj.message.info("您还没有登录登录!",1.5,function(){
+                        window.location.href="/";
+                    });
+                    return;
+                }
+                //开启tooltip提示
+                common.tooltip();
+                var animating=false;
+                //tab切换
+                var tabSwitch=function(){
+                    var tab=$("#tab"),
+                        first_tab=tab.find(".tab_item"),
+                        tab_box=tab.find(".tab_top_box"),
+                        drop_line=tab.find(".drop_line");
+                    var tabBottom=$("#tab_bottom_box"),
+                        tabItems=tabBottom.find(".tab_cnt_item"),
+                        /*tabItem_width=tabItems.eq(0).width(),*/
+                        tabItem_width=$("#tab").width(),
+                        tabItem_height=tabItems.eq(0).height(),
+                        tab_content=$("#tab_content");
+                    first_tab.eq(0).addClass("active").siblings().removeClass("active");
+                    tab_content.css({
+                        "width":tabItem_width,
+                        "overflow":"hidden"
+                    });
+                    tabItems.each(function(idx,item){
+                        tabItems.eq(idx).css({
+                            "width":tabItem_width,
+                            "display":"block",
+                            "float":"left"
+                        });
+                    });
+                    tabBottom.css({
+                        width:tabItem_width*tabItems.length,
+                        "position":"relative",
+                        "height":tabItems.eq(0).height(),
+                        "left":"0",
+                        "overflow":"hidden"
+                    });
+                    drop_line.css({
+                        "left":first_tab.offset().left-tab_box.offset().left,
+                        "width":first_tab.eq(0).outerWidth()
+                    });
+                    first_tab.off("click");
+
+                    first_tab.on("click",function(){
+                        if(animating==true){
+                            return;
+                        }
+                        animating=true;
+                        var left=$(this).offset().left;
+                        var index=$(this).index();
+                        tabBottom.css({
+                            height:tabItems.eq(index).height(),
+                            "overflow":"hidden"
+                        });
+                        tabBottom.animate({
+                            "left":-(index)*tabItem_width
+                        },300,"swing",function(){
+                            animating=false;
+                        });
+                        $(this).addClass("active").siblings().removeClass("active");
+                        drop_line.css({
+                            width:$(this).outerWidth()
+                        });
+                        drop_line.animate({
+                            left:left-tab_box.offset().left
+                        },300,"swing",function(){
+                            animating=false;
+                        });
+                    });
+                }
+                //全选
+                var checkedAll=function(){
+                    var allBtn=$("#checkall"),
+                        box=$("#children_checkbox"),
+                        checkboxs=box.find("input");
+                    allBtn.on("click",function(){
+                        var value=allBtn.prop("checked");
+                        if(value){
+                            checkboxs.each(function(idx,item){
+                                checkboxs.eq(idx).prop("checked",true);
+                            });
+                        }else{
+                            checkboxs.each(function(idx,item){
+                                checkboxs.eq(idx).prop("checked",false);
+                            });
+                        }
+                    });
+                    checkboxs.each(function(idx,item){
+                        checkboxs.eq(idx).on("click",function(){
+                            var value=$(this).prop("checked");
+                            var tamp=null;
+                            var result=true;
+                            if(value){
+                                checkboxs.each(function(index,one){
+                                    tamp=checkboxs.eq(index).prop("checked");
+                                    if(!tamp){
+                                        result=false;
+                                        return false;
+                                    }
+                                });
+                                if(result){
+                                   allBtn.prop("checked",true);
+                                }
+                            }else{
+                                allBtn.prop("checked",false);
+                            }
+                        });
+                    });
+                }
+                //tab切换
+                //tabSwitch();
+                $(window).on("resize",function(){
+                    tabSwitch();
+                });
+                //全选
+                checkedAll();
+                //左下角头像点击面板
+                common.hoverHeaderPic();
+                common.changeHeaderInfo();
+            });
+        </script>
+    </head>
+    <body>
+        <div id="window" class="window">
+            <div id="viewport" class="viewport">
+                <div class="main_content">
+                    <!-- 头部start -->
+                    <header class="header main_header">
+                        <div id="view_header" class="view_header">
+                            <div class="login_info clearfix">
+                                <div class="logo_model fl clearfix">
+                                    <div class="logo_img fl">
+                                        <img class="logo" src="../images/header/logo.png" alt="柏嘉集团" />
+                                    </div>
+                                    <div class="logo_name fl">中交柏嘉生产经营管理系统</div>
+                                </div>
+                                <div class="user fr">
+                                    <div class="user_model">
+                                        <span class="date">2017年8月22日 星期二</span>
+                                        <span class="welcome">欢迎您，<i id="uname">xxx</i> </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    <!-- 头部end -->
+                    <!-- 左侧start -->
+                    <section id="left_menu" class="left_menu">
+                        <div class="view_left_menu">
+                            <div class="left_menu_model">
+                                <ul id="menus_box" class="menus_box">
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="工作台" data-arrow-direction="right" href="./desk.html" target="_self">
+                                            <span class="DaDao DaDao-gongzuotaixuanzhong"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="我发起的" data-arrow-direction="right" href="./project.html" target="_self">
+                                            <span class="DaDao DaDao-xiangmu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="应用中心" data-arrow-direction="right" href="./application.html" target="_self">
+                                            <span class="DaDao DaDao-yingyongzhongxin"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item active">
+                                        <a class="menu_link" data-tooltip="消息" data-arrow-direction="right" href="./message.html" target="_self">
+                                            <span class="DaDao DaDao-xiaoxi1"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="通讯录" data-arrow-direction="right" href="./maillist.html" target="_self">
+                                            <span class="DaDao DaDao-tongxunlu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="查询" data-arrow-direction="right" href="./query.html" target="_self">
+                                            <span class="DaDao DaDao-dwcxico"></span>
+                                        </a>
+                                    </li>
+                                </ul>
+                                <div class="menu_setting">
+                                    <div class="setting_item setting_u">
+                                        <a class="setting_link" data-tooltip="后台管理" data-arrow-direction="right" href="http://ee-manage-test.baijiakeji.cn/site/login.html" target="admin">
+                                            <span class="DaDao DaDao-houtai-kehuguanli"></span>
+                                        </a>
+                                    </div>
+                                    <!-- <div class="setting_item setting_t">
+                                        <a class="setting_link" data-tooltip="用户设置" data-arrow-direction="right" href="javascript:void(0);">
+                                            <span class="DaDao DaDao-gerenshezhi"></span>
+                                        </a>
+                                    </div> -->
+                                    <div id="setting_me" class="setting_me">
+                                        <div class="tick">
+                                            <img class="head_pic" src="../images/examples/3401888993773024.jpg" src="" alt="" />
+                                        </div>
+                                        <div style="display:none;" class="ui_user_panel">
+                                            <ul class="ui_user_list">
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',1)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-account"></span>账户资料</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',2)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-password"></span>修改密码</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',3)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-binding"></span>账号绑定</a>
+                                                </li>
+                                                <li class="panel_item bd_none">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',4)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-__"></span>消息提醒</a>
+                                                </li>
+                                                <li class="line"></li>
+                                                <li class="panel_item quot">
+                                                    <a href="javascript:void(0);" onclick="common.toQuot()" class="block atance" target="_self">退出系统</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- 左侧end -->
+                    <!--内容区域start-->
+                    <section id="main_body" class="main_body">
+                        <div class="view_main_body">
+                            <div class="body_inner default_width">
+                                <div class="message_box">
+                                    <div id="tab" class="ui_tab message_tab">
+                                        <div class="tab_header">
+                                            <div class="tab_top_box">
+                                                <div class="tab_item active">
+                                                    <a class="alink" href="./message.html" target="_self">未读消息</a>
+                                                    <div class="drop_line"></div>
+                                                </div>
+                                                <div class="tab_item">
+                                                    <a class="alink" href="./message_readed.html" target="_self">已读消息</a>
+                                                </div>
+                                                <div class="fr set_read">
+                                                    <button class="dadao_btn">标记为已读</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="tab_content" class="tab_content">
+                                            <div id="tab_bottom_box" class="tab_bottom_box">
+                                                <div class="tab_cnt_item active">
+                                                    <div id="unread_frame" class="message message_unread">
+                                                        <div class="classify clearfix">
+                                                            <div class="legend fl">未读消息：</div>
+                                                            <div class="fr">
+                                                                <select class="dadao_select dadao_select_info">
+                                                                    <option value="0">全部</option>
+                                                                    <option value="1">审批处理</option>
+                                                                    <option value="2">超时提醒</option>
+                                                                    <option value="3">任务指派</option>
+                                                                    <option value="4">文件助手</option>
+                                                                    <option value="5">系统消息</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <table class="ui_table dadao_table table_strick">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th width="78">
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input id="checkall" class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                        <span class="message_all">全选</span>
+                                                                    </th>
+                                                                    <th>消息内容</th>
+                                                                    <th width="108">类型</th>
+                                                                    <th width="98">时间</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="children_checkbox">
+                                                                <!-- <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        您提交的项目<a class="fj" download="滨江路二期工程优化设计.pdf" href="../styles/cssrest.css" title="点击下载">
+                                                                            滨江路二期工程优化设计.pdf
+                                                                        </a>备案登记审核已通过
+                                                                    </td>
+                                                                    <td>系统消息</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr> -->
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="项目信息登记">
+                                                                            项目信息登记
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="经营计划提请">
+                                                                            经营计划提请
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="经营结果录入">
+                                                                            经营结果录入
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="购买标书报名评审">
+                                                                            购买标书报名评审
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="标书评审投标请示">
+                                                                            标书评审投标请示
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="生产计划提请">
+                                                                            生产计划提请
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="分包需求评审">
+                                                                            分包需求评审
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="分包方评审">
+                                                                            分包方评审
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="成果审核">
+                                                                            成果审核
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="成果出版审查会">
+                                                                            成果出版审查会
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="生产完结">
+                                                                            生产完结
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="资质备案申请">
+                                                                            资质备案申请
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="备案信息录入">
+                                                                            备案信息录入
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="合同会签评审">
+                                                                            合同会签评审
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="专项开支申请">
+                                                                            专项开支申请
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="项目完结申请">
+                                                                            项目完结申请
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+
+
+
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="项目信息登记">
+                                                                            项目信息登记
+                                                                        </a>
+                                                                        <span class="success">
+                                                                            审批已通过
+                                                                        </span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="项目信息登记">
+                                                                            项目信息登记
+                                                                        </a>
+                                                                        <span class="error">
+                                                                            审批被驳回
+                                                                        </span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="经营计划提请">
+                                                                            经营计划提请
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，为了使您的经营工作更加有条理便捷的开展，您可以使用“经营过程录入”对您的经营工作实时的记录更新哦！</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="经营计划提请">
+                                                                            经营计划提请
+                                                                        </a>
+                                                                        <span class="error">被驳回</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="经营结果录入">
+                                                                            经营结果录入
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="经营结果录入">
+                                                                            经营结果录入
+                                                                        </a>
+                                                                        <span class="error">被驳回</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="购买标书报名评审">
+                                                                            购买标书报名评审
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="购买标书报名评审">
+                                                                            购买标书报名评审
+                                                                        </a>
+                                                                        <span class="error">被驳回</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="标书评审投标请示">
+                                                                            标书评审投标请示
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="标书评审投标请示">
+                                                                            标书评审投标请示
+                                                                        </a>
+                                                                        <span class="error">被驳回</span>
+                                                                        <span class="itext">，请处理</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="生产计划提醒">
+                                                                            生产计划提醒
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="生产计划提醒">
+                                                                            生产计划提醒
+                                                                        </a>
+                                                                        <span class="error">被驳回</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="分包需求评审">
+                                                                            分包需求评审
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="分包需求评审">
+                                                                            分包需求评审
+                                                                        </a>
+                                                                        <span class="error">被驳回</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="分包方评审">
+                                                                            分包方评审
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="分包方评审">
+                                                                            分包方评审
+                                                                        </a>
+                                                                        <span class="error">被驳回</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="成果审核">
+                                                                            成果审核
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="成果审核">
+                                                                            成果审核
+                                                                        </a>
+                                                                        <span class="error">被驳回</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="成果出版审查会">
+                                                                            成果出版审查会
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="成果出版审查会签">
+                                                                            成果出版审查会签
+                                                                        </a>
+                                                                        <span class="error">被驳回</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="生产完结">
+                                                                            生产完结
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="生产完结">
+                                                                            生产完结
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="资质备案申请">
+                                                                            资质备案申请
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，您需要对备案通过以后的信息进行录入。</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="资质备案申请">
+                                                                            资质备案申请
+                                                                        </a>
+                                                                        <span class="error">被驳回</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="备案信息录入">
+                                                                            备案信息录入
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="备案信息录入">
+                                                                            备案信息录入
+                                                                        </a>
+                                                                        <span class="error">被驳回</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="合同会签评审">
+                                                                            合同会签评审
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="合同会签评审">
+                                                                            合同会签评审
+                                                                        </a>
+                                                                        <span class="error">被驳回</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="专项开支申请">
+                                                                            专项开支申请
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="专项开支申请">
+                                                                            专项开支申请
+                                                                        </a>
+                                                                        <span class="error">被驳回</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="项目完结申请">
+                                                                            项目完结申请
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="项目完结申请">
+                                                                            项目完结申请
+                                                                        </a>
+                                                                        <span class="error">被驳回</span>
+                                                                        <span class="itext">，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="项目完结申请">
+                                                                            项目完结申请
+                                                                        </a>
+                                                                        <span class="success">审批已通过</span>
+                                                                        <span class="itext">，抄送给您，请知晓</span>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">发起的</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="项目信息登记">
+                                                                            项目信息登记
+                                                                        </a>
+                                                                        <span class="itext">需要您处理，剩余时间2小时，请知晓并处理</span>
+                                                                    </td>
+                                                                    <td>超时提醒</td>
+                                                                    <td>2017/08/06</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">您</span>
+                                                                        <span class="itext">参与的项目</span>
+                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="fj"  href="../styles/cssrest.css" title="xxxx">
+                                                                            xxxx
+                                                                        </a>
+                                                                        <span class="itext">有新任务指派给您，请知晓</span>
+                                                                    </td>
+                                                                    <td>任务指派</td>
+                                                                    <td>2017/08/06</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">给您发送了文件，请知晓</span>
+                                                                    </td>
+                                                                    <td>文件助手</td>
+                                                                    <td>2017/08/06</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">给您提交了成果复核，请处理</span>
+                                                                    </td>
+                                                                    <td>文件助手</td>
+                                                                    <td>2017/08/06</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">给您提交了成果复核，对方已回复意见，请知晓</span>
+                                                                    </td>
+                                                                    <td>文件助手</td>
+                                                                    <td>2017/08/06</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="imenber">冯佳佳</span>
+                                                                        <span class="itext">加入</span>
+                                                                        <span class="team">xxx团队</span>
+                                                                    </td>
+                                                                    <td>系统消息</td>
+                                                                    <td>2017/08/06</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <label class="dadao_input_checkbox">
+                                                                            <input class="default_checkbox" type="checkbox" />
+                                                                            <span class="checkbox_inner"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td>
+                                                                        <span class="itext">当前系统有新版，新增功能xxx</span>
+                                                                    </td>
+                                                                    <td>系统消息</td>
+                                                                    <td>2017/08/06</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                        <div class="empty">
+                                                            <div class="dadao_empty"></div>
+                                                            <div class="empty_text">暂时没有消息</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!--内容区域end-->
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

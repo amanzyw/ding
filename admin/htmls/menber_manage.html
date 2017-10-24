@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_fwltmksis4viy66r.css" />
+        <link rel="stylesheet" href="../styles/cssrest.css" />
+        <link rel="stylesheet" href="../styles/bootstrap.min.css" />
+        <link rel="stylesheet" href="../styles/admin.css" />
+        <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
+        <script>
+            $(document).ready(function(){
+                //树形结构交互
+                var tree_node=function(){
+                    var tree=$("#tree_node");
+                    var caret=tree.find(".ant-select-tree-switcher_open");
+                    var node=tree.find(".ant-select-tree-node-content-wrapper");
+                    caret.on("click",function(){
+                        var isopen=$(this).is(".ant-select-tree-switcher_open");
+                        if(isopen){
+                            $(this).removeClass("ant-select-tree-switcher_open").addClass("ant-select-tree-switcher_close");
+                            $(this).siblings("ul").removeClass("ant-select-tree-child-tree-open");
+                        }else{
+                            $(this).removeClass("ant-select-tree-switcher_close").addClass("ant-select-tree-switcher_open");
+                            $(this).siblings("ul").addClass("ant-select-tree-child-tree-open");
+                        }
+                    });
+                    node.on("click",function(){
+                        var text=$.trim($(this).text());
+                        alert("选中了："+text);
+                    });
+                }
+                tree_node();
+            });
+        </script>
+    </head>
+    <body>
+        <div class="left_menus">
+            <div class="logo"></div>
+            <ul class="menu_list">
+                <li class="menu_item">
+                    <a href="./company_setting.html" class="item block" target="_self">企业设置</a>
+                </li>
+                <li class="menu_item">
+                    <a href="./mechan_setting.html" class="item block" target="_self">组织机构</a>
+                </li>
+                <li class="menu_item">
+                    <a href="./menber_manage.html" class="item block active" target="_self">账号管理</a>
+                </li>
+                <li class="menu_item">
+                    <a href="./user_power.html" class="item block" target="_self">角色权限</a>
+                </li>
+                <li class="menu_item">
+                    <a href="./manage.html" class="item block" target="_self">管理审批</a>
+                </li>
+            </ul>
+        </div>
+        <div class="main_body">
+            <div class="pender_header">
+                <div class="iblock render_img"><img src="../images/header_small_icon_3.png" alt="" /></div>
+                <div class="iblock text">账户管理</div>
+            </div>
+            <div class="menber">
+                <div class="menber_view_box">
+                    <div class="account_manage_view">
+                        <div class="accoutn_btn_group clearfix">
+                            <div class="pull-left">
+                                <div class="form-group has-feedback">
+                                    <input type="text" class="form-control" id="inputSuccess3" aria-describedby="inputSuccess3Status" placeholder="输入姓名进行搜索">
+                                    <span class="glyphicon glyphicon-search form-control-feedback" aria-hidden="true"></span>
+                                </div>
+                            </div>
+                            <div class="pull-right">
+                                <div class="iblock">
+                                    <button class="btn btn-info"><span class="glyphicon glyphicon-plus"></span>添加已有账户</button>
+                                </div>
+                                <div class="iblock">
+                                    <button class="btn btn-success"><span class="glyphicon glyphicon-plus"></span>新增账户</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="account_table">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th width="50"><input type="checkbox"></th>
+                                        <th width="74">序号</th>
+                                        <th>用户名</th>
+                                        <th>真实姓名</th>
+                                        <th>电话</th>
+                                        <th>性别</th>
+                                        <th width="400">部门</th>
+                                        <th>角色</th>
+                                        <th width="240">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="checkbox"></td>
+                                        <td>1</td>
+                                        <td>gesj</td>
+                                        <td>葛胜锦</td>
+                                        <td>13484538787</td>
+                                        <td>男</td>
+                                        <td>中交柏嘉工程技术研究院</td>
+                                        <td>总裁</td>
+                                        <td>
+                                            <div class="btn-group" role="group" aria-label="...">
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-edit"></span>编辑</button>
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-off"></span>禁用</button>
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-trash"></span>删除</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="checkbox"></td>
+                                        <td>1</td>
+                                        <td>gesj</td>
+                                        <td>葛胜锦</td>
+                                        <td>13484538787</td>
+                                        <td>男</td>
+                                        <td>中交柏嘉工程技术研究院</td>
+                                        <td>总裁</td>
+                                        <td>
+                                            <div class="btn-group" role="group" aria-label="...">
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-edit"></span>编辑</button>
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-off"></span>禁用</button>
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-trash"></span>删除</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="checkbox"></td>
+                                        <td>1</td>
+                                        <td>gesj</td>
+                                        <td>葛胜锦</td>
+                                        <td>13484538787</td>
+                                        <td>男</td>
+                                        <td>中交柏嘉工程技术研究院</td>
+                                        <td>总裁</td>
+                                        <td>
+                                            <div class="btn-group" role="group" aria-label="...">
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-edit"></span>编辑</button>
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-off"></span>禁用</button>
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-trash"></span>删除</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="checkbox"></td>
+                                        <td>1</td>
+                                        <td>gesj</td>
+                                        <td>葛胜锦</td>
+                                        <td>13484538787</td>
+                                        <td>男</td>
+                                        <td>中交柏嘉工程技术研究院</td>
+                                        <td>总裁</td>
+                                        <td>
+                                            <div class="btn-group" role="group" aria-label="...">
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-edit"></span>编辑</button>
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-off"></span>禁用</button>
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-trash"></span>删除</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="checkbox"></td>
+                                        <td>1</td>
+                                        <td>gesj</td>
+                                        <td>葛胜锦</td>
+                                        <td>13484538787</td>
+                                        <td>男</td>
+                                        <td>中交柏嘉工程技术研究院</td>
+                                        <td>总裁</td>
+                                        <td>
+                                            <div class="btn-group" role="group" aria-label="...">
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-edit"></span>编辑</button>
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-off"></span>禁用</button>
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-trash"></span>删除</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="checkbox"></td>
+                                        <td>1</td>
+                                        <td>gesj</td>
+                                        <td>葛胜锦</td>
+                                        <td>13484538787</td>
+                                        <td>男</td>
+                                        <td>中交柏嘉工程技术研究院</td>
+                                        <td>总裁</td>
+                                        <td>
+                                            <div class="btn-group" role="group" aria-label="...">
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-edit"></span>编辑</button>
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-off"></span>禁用</button>
+                                                <button class="btn btn-default btn-sm"><span class="glyphicon glyphicon-trash"></span>删除</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

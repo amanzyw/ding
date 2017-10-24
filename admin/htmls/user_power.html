@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_fwltmksis4viy66r.css" />
+        <link rel="stylesheet" href="../styles/cssrest.css" />
+        <link rel="stylesheet" href="../styles/bootstrap.min.css" />
+        <link rel="stylesheet" href="../styles/admin.css" />
+        <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
+        <script>
+            $(document).ready(function(){
+                //树形结构交互
+                var tree_node=function(){
+                    var tree=$("#tree_node");
+                    var caret=tree.find(".ant-select-tree-switcher_open");
+                    var node=tree.find(".ant-select-tree-node-content-wrapper");
+                    caret.on("click",function(){
+                        var isopen=$(this).is(".ant-select-tree-switcher_open");
+                        if(isopen){
+                            $(this).removeClass("ant-select-tree-switcher_open").addClass("ant-select-tree-switcher_close");
+                            $(this).siblings("ul").removeClass("ant-select-tree-child-tree-open");
+                        }else{
+                            $(this).removeClass("ant-select-tree-switcher_close").addClass("ant-select-tree-switcher_open");
+                            $(this).siblings("ul").addClass("ant-select-tree-child-tree-open");
+                        }
+                    });
+                    node.on("click",function(){
+                        var text=$.trim($(this).text());
+                        alert("选中了："+text);
+                    });
+                }
+                tree_node();
+            });
+        </script>
+    </head>
+    <body>
+        <div class="left_menus">
+            <div class="logo"></div>
+            <ul class="menu_list">
+                <li class="menu_item">
+                    <a href="./company_setting.html" class="item block" target="_self">企业设置</a>
+                </li>
+                <li class="menu_item">
+                    <a href="./mechan_setting.html" class="item block" target="_self">组织机构</a>
+                </li>
+                <li class="menu_item">
+                    <a href="./menber_manage.html" class="item block" target="_self">账号管理</a>
+                </li>
+                <li class="menu_item">
+                    <a href="./user_power.html" class="item block active" target="_self">角色权限</a>
+                </li>
+                <li class="menu_item">
+                    <a href="./manage.html" class="item block" target="_self">管理审批</a>
+                </li>
+            </ul>
+        </div>
+        <div class="main_body">
+            <div class="pender_header">
+                <div class="iblock render_img"><img src="../images/header_small_icon_4.png" alt="" /></div>
+                <div class="iblock text">角色权限</div>
+            </div>
+            <div class="power">
+                <div class="power_view_box">
+                    <div class="display_box">
+                        <div class="ui_group">
+                            <div class="btn-group-power">
+                                <div class="row">
+                                    <div class="iblock"><button class="btn btn-info btn-sm"><span class="glyphicon glyphicon-plus"></span>新增分组</button></div>
+                                    <div class="iblock"><button class="btn btn-info btn-sm"><span class="glyphicon glyphicon-plus"></span>新增角色</button></div>
+                                </div>
+                            </div>
+                            <div id="tree_node" class="ant-select-dropdown ant-select-tree-dropdown ant-select-dropdown--single ant-select-dropdown-placement-bottomLeft">
+                                <div>
+                                    <ul class="ant-select-tree" role="tree-node" unselectable="true">
+                                        <li class="">
+                                            <span class="ant-select-tree-switcher ant-select-tree-switcher_open"></span>
+                                            <span title="parent 1" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-open">
+                                                <span class="ant-select-tree-title">默认</span>
+                                            </span>
+                                            <ul class="ant-select-tree-child-tree ant-select-tree-child-tree-open" data-expanded="true">
+                                                <li class="">
+                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher-noop"></span>
+                                                    <span title="my leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                        <span class="ant-select-tree-title">系统管理员</span>
+                                                    </span>
+                                                </li>
+                                                <li class="">
+                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher-noop"></span>
+                                                    <span title="my leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                        <span class="ant-select-tree-title">总裁</span>
+                                                    </span>
+                                                </li>
+                                                <li class="">
+                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher-noop"></span>
+                                                    <span title="my leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                        <span class="ant-select-tree-title">生产管理着</span>
+                                                    </span>
+                                                </li>
+                                                <li class="">
+                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher-noop"></span>
+                                                    <span title="my leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                        <span class="ant-select-tree-title">经营管理者</span>
+                                                    </span>
+                                                </li>
+                                                <li class="">
+                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher-noop"></span>
+                                                    <span title="my leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                        <span class="ant-select-tree-title">生产总负责人</span>
+                                                    </span>
+                                                </li>
+                                                <li class="">
+                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher-noop"></span>
+                                                    <span title="my leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                        <span class="ant-select-tree-title">经营总负责人</span>
+                                                    </span>
+                                                </li>
+                                                <li class="">
+                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher-noop"></span>
+                                                    <span title="my leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                        <span class="ant-select-tree-title">项目负责人</span>
+                                                    </span>
+                                                </li>
+                                                <li class="">
+                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher-noop"></span>
+                                                    <span title="my leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                        <span class="ant-select-tree-title">专业负责人</span>
+                                                    </span>
+                                                </li>
+                                                <li class="">
+                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher-noop"></span>
+                                                    <span title="my leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                        <span class="ant-select-tree-title">生产人员</span>
+                                                    </span>
+                                                </li>
+                                                <li class="">
+                                                    <span class="ant-select-tree-switcher ant-select-tree-switcher-noop"></span>
+                                                    <span title="my leaf" class="ant-select-tree-node-content-wrapper ant-select-tree-node-content-wrapper-normal">
+                                                        <span class="ant-select-tree-title">经营人员</span>
+                                                    </span>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dis_power_inner">
+                            <div class="display_auto_height">
+                                <div class="tit">系统管理员（1人）<span class="iblock">“系统管理员”为默认角色，无法编辑，请到“管理后台-设置-更改主管理员”，设置完成后自动同步</span></div>
+                                <div class="pow_switch">
+                                    <a href="javascript:void(0);" class="active alink">功能权限</a>
+                                    <a href="javascript:void(0);" class="alink">角色成员</a>
+                                </div>
+                                <div class="pow_ms_tips">
+                                    <span>设置角色对应的功能操作、应用管理、后台管理权限</span>
+                                    <div class="pull-right">
+                                        <label><input type="checkbox" />全选</label>
+                                    </div>
+                                </div>
+                                <div class="pow_manage_table">
+                                    <table class="table">
+                                        <tbody>
+                                            <tr>
+                                                <td align="center" width="130">
+                                                    <label>
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">项目备案</span>
+                                                    </label>
+                                                </td>
+                                                <td>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">项目信息登记</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">项目登记查询</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">经营信息查询</span>
+                                                    </label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="center">
+                                                    <label>
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">投标管理</span>
+                                                    </label>
+                                                </td>
+                                                <td>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">企业备案信息查询</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">标书购买报名评审</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">标书评审投标请示</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">投标评审查询</span>
+                                                    </label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="center">
+                                                    <label>
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">分包管理</span>
+                                                    </label>
+                                                </td>
+                                                <td>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">分包方备案登记</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">分包方备案查询</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">分包需求评审</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">分包需求评审查询</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">项目分包方评审</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">分包信息查询</span>
+                                                    </label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="center">
+                                                    <label>
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">生产协作</span>
+                                                    </label>
+                                                </td>
+                                                <td>
+
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="center">
+                                                    <label>
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">财务管理</span>
+                                                    </label>
+                                                </td>
+                                                <td>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">专项开支申请</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">催款信息录入</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">收款明细录入</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">开支明细录入</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">财务信息统计</span>
+                                                    </label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="center">
+                                                    <label>
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">合同管理</span>
+                                                    </label>
+                                                </td>
+                                                <td>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">合同会签评审</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">投标合同会签查询</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">分包合同评审查询</span>
+                                                    </label>
+                                                    <label class="iblock dis_label">
+                                                        <input type="checkbox" />
+                                                        <span class="iblock">合同协议管理</span>
+                                                    </label>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="pow_sm_save">
+                                    <button class="btn btn-primary btn-block">保存</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

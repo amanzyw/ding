@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <script type="text/javascript" src="../../commonFunc.bundle.js"></script>
+        <script type="text/javascript" src="../scripts/socket.js"></script>
+        <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
+        <script type="text/javascript" src="../scripts/echarts.simple.min.js"></script>
+        <script type="text/javascript" src="../scripts/main.js"></script>
+        <script type="text/javascript" src="../scripts/old.main.js"></script>
+        <script>
+            common.getMsg();
+        </script>
+        <link rel="stylesheet" href="../styles/antd.css" />
+        <link rel="stylesheet" href="../styles/cssrest.css" />
+        <link rel="stylesheet" href="../styles/app.css" />
+        <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_w094gou4uzddkj4i.css" />
+        <script>
+            $(document).ready(function(){
+                //开启tooltip提示
+                common.tooltip();
+                //左下角头像点击面板
+                common.hoverHeaderPic();
+                var getHTML=function(){
+                    var URL=common.getUrlInfo.URL+"/"+common.getUrlInfo.version;
+                    if(!common.isLogin){
+                        antdObj.message.info("您还没有登录登录!",1.5,function(){
+                            window.location.href="/";
+                        });
+                        return;
+                    }
+                    var getData=function(){
+                        var dtd=$.Deferred();
+                        $.ajax({
+                            url:URL+"/employees/getapps",
+                            type:"post",
+                            async:true,
+                            headers:{
+                                Authorization:"Bearer "+JSON.parse(window.localStorage.getItem("userLoginInfo"))["token"]
+                            },
+                            data:{
+                                id:JSON.parse(window.localStorage.getItem("userInfoMation"))["emp_id"]
+                            },
+                            dataType:"json",
+                            success:function(data){
+                                dtd.resolve(data);
+                            },
+                            error:function(){
+                                dtd.reject(arguments);
+                            }
+                        });
+                        return dtd.promise();
+                    }
+                    $.when(getData()).done(function(data){
+                        console.log(data);
+                        if(data["code"]=="10010"){
+                            alert("token过期，请重新登录！");
+                            return;
+                        }
+                        var html="",
+                            getURL=function(arr_actions,app_code){
+                                var result=[];
+                                $.each(arr_actions,function(idx,item){
+                                    var obj=new Object();
+                                    var tamp="/v"+item["version"]+"/"+app_code+"s/"+item["action_code"];
+                                    obj["url"]=tamp;
+                                    obj["method"]=item["meth"];
+                                    obj["params"]=JSON.parse(item["params"]);
+                                    if(obj["params"]!=undefined){
+                                        obj["params"]=obj["params"].join(",");
+                                    }else{
+                                        obj["params"]="";
+                                    }
+                                    result.push(obj);
+                                });
+                                return result;
+                            }
+                        if(data.length==0){
+                            html+='<div class="empty">';
+                            html+=  '<div class="dadao_empty"></div>';
+                            html+=  '<div class="empty_text">暂时没有应用！</div>';
+                            html+='</div>';
+                        }else{
+                            $.each(data,function(idx,item){
+                                var apps="";
+                                $.each(item["apps"],function(index,one){
+                                    var urls=getURL(one["actions"],one["app_code"]);
+                                    /*if(idx==1){
+                                        apps+='<div class="app_cell" data-app_code="'+one["app_code"]+'">';
+                                        apps+=    '<a class="block" href="application1.html?getURL='+urls[1]["url"]+'&&getMethod='+urls[1]["method"]+'&&getParams='+urls[1]["params"]+'&&postURL='+urls[0]["url"]+'&&postMethod='+urls[0]["method"]+'&&postParams='+urls[0]["params"]+'" target="_self" title="'+one["app_desc"]+'">';
+                                        apps+=         '<div class="app_img img_de4" style="background:url(http://ee-admin-test.baijiakeji.cn'+one["icon_url"]+') no-repeat center center;"></div>';
+                                        apps+=         '<span class="itxt">'+one["app_name"]+'</span>';
+                                        apps+=    '</a>';
+                                        apps+='</div>';
+                                    }*/
+                                    if(1){
+                                        apps+='<div class="app_cell" data-app_code="'+one["app_code"]+'">';
+                                        apps+=    '<a class="block" href="application1.html?getURL='+urls[0]["url"]+'&&getMethod='+urls[0]["method"]+'&&getParams='+urls[0]["params"]+'">';
+                                        apps+=         '<div class="app_img img_de4" style="background:url(http://ee-admin-test.baijiakeji.cn'+one["icon_url"]+') no-repeat center center;"></div>';
+                                        apps+=         '<span class="itxt">'+one["app_name"]+'</span>';
+                                        apps+=    '</a>';
+                                        apps+='</div>';
+                                    }
+
+                                });
+                                html+='<li class="app_item management" data-company_id="'+item["company_id"]+'" data-del="'+item["company_id"]+'" data-desc="'+item["desc"]+'" data-group_id="'+item["group_id"]+'" data-groupid="'+item["groupid"]+'" data-status="'+item["status"]+'" data-update_time="'+item["update_time"]+'">';
+                                html+=    '<div class="app_text">'+item["name"]+'</div>';
+                                html+=         '<div class="app_content clearfix">';
+                                html+=              apps;
+                                html+=         '</div>';
+                                html+=    '</div>';
+                                html+='</li>';
+                            });
+                        }
+                        $("#application").prepend(html);
+                    }).fail(function(data){
+                        throw new Error("网络出错!");
+                    });
+                }
+                getHTML();
+                common.changeHeaderInfo();
+            });
+        </script>
+    </head>
+    <body>
+        <div id="window" class="window">
+            <div id="viewport" class="viewport">
+                <div class="main_content">
+                    <!-- 头部start -->
+                    <header class="header main_header">
+                        <div id="view_header" class="view_header">
+                            <div class="login_info clearfix">
+                                <div class="logo_model fl clearfix">
+                                    <div class="logo_img fl">
+                                        <img class="logo" src="../images/header/logo.png" alt="柏嘉集团" />
+                                    </div>
+                                    <div class="logo_name fl">中交柏嘉生产经营管理系统</div>
+                                </div>
+                                <div class="user fr">
+                                    <div class="user_model">
+                                        <span class="date">2017年8月22日 星期二</span>
+                                        <span class="welcome">欢迎您，<i id="uname">xxx</i> </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    <!-- 头部end -->
+                    <!-- 左侧start -->
+                    <section id="left_menu" class="left_menu">
+                        <div class="view_left_menu">
+                            <div class="left_menu_model">
+                                <ul id="menus_box" class="menus_box">
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="工作台" data-arrow-direction="right" href="./desk.html" target="_self">
+                                            <span class="DaDao DaDao-gongzuotaixuanzhong"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="我发起的" data-arrow-direction="right" href="./project.html" target="_self">
+                                            <span class="DaDao DaDao-xiangmu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item active">
+                                        <a class="menu_link" data-tooltip="应用中心" data-arrow-direction="right" href="./application.html" target="_self">
+                                            <span class="DaDao DaDao-yingyongzhongxin"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="消息" data-arrow-direction="right" href="./message.html" target="_self">
+                                            <span class="DaDao DaDao-xiaoxi1"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="通讯录" data-arrow-direction="right" href="./maillist.html" target="_self">
+                                            <span class="DaDao DaDao-tongxunlu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="查询" data-arrow-direction="right" href="./query.html" target="_self">
+                                            <span class="DaDao DaDao-dwcxico"></span>
+                                        </a>
+                                    </li>
+                                </ul>
+                                <div class="menu_setting">
+                                    <div class="setting_item setting_u">
+                                        <a class="setting_link" data-tooltip="后台管理" data-arrow-direction="right" href="http://ee-manage-test.baijiakeji.cn/site/login.html" target="admin">
+                                            <span class="DaDao DaDao-houtai-kehuguanli"></span>
+                                        </a>
+                                    </div>
+                                    <!-- <div class="setting_item setting_t">
+                                        <a class="setting_link" data-tooltip="用户设置" data-arrow-direction="right" href="javascript:void(0);">
+                                            <span class="DaDao DaDao-gerenshezhi"></span>
+                                        </a>
+                                    </div> -->
+                                    <div id="setting_me" class="setting_me">
+                                        <div class="tick">
+                                            <img class="head_pic" src="../images/examples/3401888993773024.jpg" src="" alt="" />
+                                        </div>
+                                        <div style="display:none;" class="ui_user_panel">
+                                            <ul class="ui_user_list">
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',1)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-account"></span>账户资料</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',2)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-password"></span>修改密码</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',3)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-binding"></span>账号绑定</a>
+                                                </li>
+                                                <li class="panel_item bd_none">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',4)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-__"></span>消息提醒</a>
+                                                </li>
+                                                <li class="line"></li>
+                                                <li class="panel_item quot">
+                                                    <a href="javascript:void(0);" onclick="common.toQuot()" class="block atance" target="_self">退出系统</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- 左侧end -->
+                    <!--内容区域start-->
+                    <section id="main_body" class="main_body">
+                        <div class="view_main_body">
+                            <div class="body_inner default_width">
+                                <div class="application_box">
+                                    <div class="application_main_view">
+                                        <ul id="application" class="application_list application">
+                                            <!-- <li class="app_item management">
+                                                <div class="app_text">经营</div>
+                                                <div class="app_content clearfix">
+                                                    <div class="app_cell">
+                                                        <a class="block" href="application_inject.html" target="_self" title="项目信息登记">
+                                                            <div class="app_img img_de1"></div>
+                                                            <span class="itxt">项目信息登记</span>
+                                                        </a>
+                                                    </div>
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="经营计划录入">
+                                                            <div class="app_img img_de2"></div>
+                                                            <span class="itxt">经营计划录入</span>
+                                                        </a>
+                                                    </div>
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="经营过程录入">
+                                                            <div class="app_img img_de3"></div>
+                                                            <span class="itxt">经营过程录入</span>
+                                                        </a>
+                                                    </div>
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="投标报名">
+                                                            <div class="app_img img_de4"></div>
+                                                            <span class="itxt">投标报名</span>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="app_item producting">
+                                                <div class="app_text">生产</div>
+                                                <div class="app_content clearfix">
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="生产计划录入">
+                                                            <div class="app_img img_de1"></div>
+                                                            <span class="itxt">生产计划录入</span>
+                                                        </a>
+                                                    </div>
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="分包需求录入">
+                                                            <div class="app_img img_de2"></div>
+                                                            <span class="itxt">分包需求录入</span>
+                                                        </a>
+                                                    </div>
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="分包方评审">
+                                                            <div class="app_img img_de3"></div>
+                                                            <span class="itxt">分包方评审</span>
+                                                        </a>
+                                                    </div>
+                                                    <div class="app_cell">
+                                                        <a class="block" href="./cooperation-production/" target="_self" title="生产协作">
+                                                            <div class="app_img img_de4"></div>
+                                                            <span class="itxt">生产协作</span>
+                                                        </a>
+                                                    </div>
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="成果审核">
+                                                            <div class="app_img img_de5"></div>
+                                                            <span class="itxt">成果审核</span>
+                                                        </a>
+                                                    </div>
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="成果出版">
+                                                            <div class="app_img img_de6"></div>
+                                                            <span class="itxt">成果出版</span>
+                                                        </a>
+                                                    </div>
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="生产完结">
+                                                            <div class="app_img img_de7"></div>
+                                                            <span class="itxt">生产完结</span>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="app_item beian">
+                                                <div class="app_text">备案</div>
+                                                <div class="app_content clearfix">
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="企业备案">
+                                                            <div class="app_img img_de1"></div>
+                                                            <span class="itxt">企业备案</span>
+                                                        </a>
+                                                    </div>
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="企业备案">
+                                                            <div class="app_img img_de2"></div>
+                                                            <span class="itxt">业主备案</span>
+                                                        </a>
+                                                    </div>
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="分包方备案">
+                                                            <div class="app_img img_de3"></div>
+                                                            <span class="itxt">分包方备案</span>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="app_item hetong">
+                                                <div class="app_text">合同</div>
+                                                <div class="app_content clearfix">
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="合同会签评审">
+                                                            <div class="app_img img_de1"></div>
+                                                            <span class="itxt">合同会签评审</span>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="app_item finance">
+                                                <div class="app_text">财务</div>
+                                                <div class="app_content clearfix">
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="催款信息录入">
+                                                            <div class="app_img img_de1"></div>
+                                                            <span class="itxt">催款信息录入</span>
+                                                        </a>
+                                                    </div>
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="收支明细录入">
+                                                            <div class="app_img img_de2"></div>
+                                                            <span class="itxt">收支明细录入</span>
+                                                        </a>
+                                                    </div>
+                                                    <div class="app_cell">
+                                                        <a class="block" href="#" target="_self" title="开支申请">
+                                                            <div class="app_img img_de3"></div>
+                                                            <span class="itxt">开支申请</span>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </li> -->
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!--内容区域end-->
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

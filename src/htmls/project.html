@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <script type="text/javascript" src="../../commonFunc.bundle.js"></script>
+        <script type="text/javascript" src="../scripts/socket.js"></script>
+        <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
+        <script type="text/javascript" src="../scripts/echarts.simple.min.js"></script>
+        <script type="text/javascript" src="../scripts/main.js"></script>
+        <script type="text/javascript" src="../scripts/old.main.js"></script>
+        <script>
+            common.getMsg();
+        </script>
+        <link rel="stylesheet" href="../styles/antd.css" />
+        <link rel="stylesheet" href="../styles/cssrest.css" />
+        <link rel="stylesheet" href="../styles/app.css" />
+        <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_w094gou4uzddkj4i.css" />
+        <script>
+            $(document).ready(function(){
+                if(!common.isLogin){
+                    antdObj.message.info("您还没有登录登录!",1.5,function(){
+                        window.location.href="/";
+                    });
+                    return;
+                }
+                //开启tooltip提示
+                common.tooltip();
+                //左下角头像点击面板
+                common.hoverHeaderPic();
+                common.changeHeaderInfo();
+            });
+        </script>
+    </head>
+    <body>
+        <div id="window" class="window">
+            <div id="viewport" class="viewport">
+                <div class="main_content">
+                    <!-- 头部start -->
+                    <header class="header main_header">
+                        <div id="view_header" class="view_header">
+                            <div class="login_info clearfix">
+                                <div class="logo_model fl clearfix">
+                                    <div class="logo_img fl">
+                                        <img class="logo" src="../images/header/logo.png" alt="柏嘉集团" />
+                                    </div>
+                                    <div class="logo_name fl">中交柏嘉生产经营管理系统</div>
+                                </div>
+                                <div class="user fr">
+                                    <div class="user_model">
+                                        <span class="date">2017年8月22日 星期二</span>
+                                        <span class="welcome">欢迎您，<i id="uname">xxx</i> </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    <!-- 头部end -->
+                    <!-- 左侧start -->
+                    <section id="left_menu" class="left_menu">
+                        <div class="view_left_menu">
+                            <div class="left_menu_model">
+                                <ul id="menus_box" class="menus_box">
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="工作台" data-arrow-direction="right" href="./desk.html" target="_self">
+                                            <span class="DaDao DaDao-gongzuotaixuanzhong"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item active">
+                                        <a class="menu_link" data-tooltip="我发起的" data-arrow-direction="right" href="./project.html" target="_self">
+                                            <span class="DaDao DaDao-xiangmu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="应用中心" data-arrow-direction="right" href="./application.html" target="_self">
+                                            <span class="DaDao DaDao-yingyongzhongxin"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="消息" data-arrow-direction="right" href="./message.html" target="_self">
+                                            <span class="DaDao DaDao-xiaoxi1"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="通讯录" data-arrow-direction="right" href="./maillist.html" target="_self">
+                                            <span class="DaDao DaDao-tongxunlu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="查询" data-arrow-direction="right" href="./query.html" target="_self">
+                                            <span class="DaDao DaDao-dwcxico"></span>
+                                        </a>
+                                    </li>
+                                </ul>
+                                <div class="menu_setting">
+                                    <div class="setting_item setting_u">
+                                        <a class="setting_link" data-tooltip="后台管理" data-arrow-direction="right" href="http://ee-manage-test.baijiakeji.cn/site/login.html" target="admin">
+                                            <span class="DaDao DaDao-houtai-kehuguanli"></span>
+                                        </a>
+                                    </div>
+                                    <!-- <div class="setting_item setting_t">
+                                        <a class="setting_link" data-tooltip="用户设置" data-arrow-direction="right" href="javascript:void(0);">
+                                            <span class="DaDao DaDao-gerenshezhi"></span>
+                                        </a>
+                                    </div> -->
+                                    <div id="setting_me" class="setting_me">
+                                        <div class="tick">
+                                            <img class="head_pic" src="../images/examples/3401888993773024.jpg" src="" alt="" />
+                                        </div>
+                                        <div style="display:none;" class="ui_user_panel">
+                                            <ul class="ui_user_list">
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',1)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-account"></span>账户资料</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',2)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-password"></span>修改密码</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',3)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-binding"></span>账号绑定</a>
+                                                </li>
+                                                <li class="panel_item bd_none">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',4)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-__"></span>消息提醒</a>
+                                                </li>
+                                                <li class="line"></li>
+                                                <li class="panel_item quot">
+                                                    <a href="javascript:void(0);" onclick="common.toQuot()" class="block atance" target="_self">退出系统</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- 左侧end -->
+                    <!--内容区域start-->
+                    <section id="main_body" class="main_body">
+                        <div class="view_main_body">
+                            <div class="body_inner default_width">
+                                <div class="project_content">
+                                    <div class="project_title">我发起的</div>
+                                    <div class="project_query form">
+                                        <form class="my_form" action="#" method="post">
+                                            <div class="from_header">
+                                                <div class="iblock form_header_item">
+                                                    <div class="iblock form_header_text">应用类型：</div>
+                                                    <div class="iblock form_select_box">
+                                                        <select class="dadao_select dadao_select_info">
+                                                            <option value="0">请选择</option>
+                                                            <option value="1">应用类型1</option>
+                                                            <option value="2">应用类型2</option>
+                                                            <option value="3">应用类型3</option>
+                                                            <option value="4">应用类型4</option>
+                                                            <option value="5">应用类型5</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="iblock form_header_item">
+                                                    <div class="iblock form_input_box form_input_box_lg">
+                                                        <input class="dadao_input dadao_input_lg dadao_input_info" type="text" placeholder="请输入关键词经行搜索"/>
+                                                    </div>
+                                                </div>
+                                                <div class="iblock form_header_item">
+                                                    <div class="iblock form_btn">
+                                                        <button class="dadao_btn dadao_btn_info">搜&nbsp;&nbsp;索</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="project_tabele">
+                                        <table class="ui_table dadao_table table_strick">
+                                            <thead>
+                                                <tr>
+                                                    <th width="60">序号</th>
+                                                    <th>项目名称</th>
+                                                    <th width="120">应用类型</th>
+                                                    <th width="120">发起时间</th>
+                                                    <th width="120">操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>1</td>
+                                                    <td>
+                                                        <div class="iblock project_name">
+                                                            <a href="./project_detail.html" class="a_link" target="_self" title="***滨江路二期工程优化">***滨江路二期工程优化</a>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="iblock project_beian">备案登记</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="iblock project_create_time">2017/01/02</span>
+                                                    </td>
+                                                    <td>
+                                                        <a class="iblock content-padding" href="./project_detail.html" title="查看详情">
+                                                            <span class="DaDao DaDao-chakanxiangqing"></span>
+                                                            详细
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>2</td>
+                                                    <td>
+                                                        <div class="iblock project_name">
+                                                            <a href="./project_detail.html" class="a_link" target="_self" title="***滨江路二期工程优化">***滨江路二期工程优化</a>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="iblock project_beian">备案登记</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="iblock project_create_time">2017/01/02</span>
+                                                    </td>
+                                                    <td>
+                                                        <a class="iblock content-padding" href="./project_detail.html" title="查看详情">
+                                                            <span class="DaDao DaDao-chakanxiangqing"></span>
+                                                            详细
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>3</td>
+                                                    <td>
+                                                        <div class="iblock project_name">
+                                                            <a href="./project_detail.html" class="a_link" target="_self" title="***滨江路二期工程优化">***滨江路二期工程优化</a>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="iblock project_beian">备案登记</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="iblock project_create_time">2017/01/02</span>
+                                                    </td>
+                                                    <td>
+                                                        <a class="iblock content-padding" href="./project_detail.html" title="查看详情">
+                                                            <span class="DaDao DaDao-chakanxiangqing"></span>
+                                                            详细
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>4</td>
+                                                    <td>
+                                                        <div class="iblock project_name">
+                                                            <a href="./project_detail.html" class="a_link" target="_self" title="***滨江路二期工程优化">***滨江路二期工程优化</a>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="iblock project_beian">备案登记</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="iblock project_create_time">2017/01/02</span>
+                                                    </td>
+                                                    <td>
+                                                        <a class="iblock content-padding" href="./project_detail.html" title="查看详情">
+                                                            <span class="DaDao DaDao-chakanxiangqing"></span>
+                                                            详细
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>5</td>
+                                                    <td>
+                                                        <div class="iblock project_name">
+                                                            <a href="./project_detail.html" class="a_link" target="_self" title="***滨江路二期工程优化">***滨江路二期工程优化</a>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="iblock project_beian">备案登记</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="iblock project_create_time">2017/01/02</span>
+                                                    </td>
+                                                    <td>
+                                                        <a class="iblock content-padding" href="./project_detail.html" title="查看详情">
+                                                            <span class="DaDao DaDao-chakanxiangqing"></span>
+                                                            详细
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div class="table_legend">应用信息：</div>
+                                        <div class="empty">
+                                            <div class="dadao_empty"></div>
+                                            <div class="empty_text">暂时没有待处理的事项</div>
+                                        </div>
+                                    </div>
+                                    <div class="desk_pager_outer">
+                                        <div class="tcdPageCode">
+                                            <button class="dadao_btn" disabled="">上一页</button>
+                                            <button class="dadao_btn">1</button>
+                                            <button class="dadao_btn" href="javascript:;">2</button>
+                                            <button class="dadao_btn" href="javascript:;">3</button>
+                                            <button class="dadao_btn" href="javascript:;">4</button>
+                                            <span>...</span>
+                                            <button class="dadao_btn" href="javascript:;">22</button>
+                                            <button class="dadao_btn" href="javascript:;">下一页</button>
+                                        </div>
+                                    </div><!--
+                                    <div class="load_more">
+                                        <button class="dadao_btn">加载更多</button>
+                                    </div> -->
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!--内容区域end-->
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

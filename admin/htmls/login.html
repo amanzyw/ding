@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="../styles/cssrest.css" />
+        <link rel="stylesheet" href="../styles/bootstrap.min.css" />
+        <link rel="stylesheet" href="../styles/admin.css" />
+        <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
+        <script type="text/javascript">
+            var $zIndex=0;
+            function Sport(opt){
+                this.dom=opt.dom;
+                this.init();
+            }
+            Sport.prototype={
+                constructor:"Sport",
+                defaultValue:{
+                    leftRange:[0,450],
+                    topRange:[0,172],
+                    opacityRange:[0.3,0.8]
+                },
+                init:function(){
+                    this.left=this.getRangeValue(this.defaultValue.leftRange);
+                    this.top=this.getRangeValue(this.defaultValue.topRange);
+                    this.opacity=this.getRangeValue(this.defaultValue.opacityRange);
+                    this.supportCSS3=this.supportCSS3();
+                    this.dom.css({
+                        "position":"absolute",
+                        left:this.left,
+                        top:this.top,
+                        opacity:this.opacity
+                    });
+                    if(this.supportCSS3["support"]==true){
+                        this.playCSS3Run();
+                    }else{
+                        this.run();
+                    }
+                },
+                supportCSS3:function(){
+                    return (function(){
+                        var arr=["transform","-webkit-transform","-moz-transform","-ms-transform"];
+                        var bodyStyle=document.getElementsByTagName("body")[0].style;
+                        var support=false,result=null;
+                        for(var i=0,len=arr.length;i<len;i++){
+                            if(arr[i] in bodyStyle){
+                                result=arr[i];
+                                support=true;
+                                break;
+                            }
+                        }
+                        return {support:support,result:result}
+                    })();
+                },
+                getRangeValue:function(arr){
+                    return Math.random()*(arr[1]-arr[0])+arr[0];
+                },
+                getRandom:function(){
+                    return Math.random()>0.5?1:-1;
+                },
+                //Low IE(8 and below8) browser
+                run:function(){
+                    var that=this,
+                        left=this.left,
+                        top=this.top,
+                        opacity=this.opacity,
+                        leftRange=that.defaultValue.leftRange,
+                        topRange=that.defaultValue.topRange,
+                        opacityRange=that.defaultValue.opacityRange,
+                        dirLeft=that.getRandom()*0.22,
+                        dirTop=that.getRandom()*0.22,
+                        dirOpcity=that.getRandom()*0.001;
+                    function go(){
+                        that.timer=setInterval(function(){
+                            left+=dirLeft*1.53;
+                            top+=dirTop;
+                            opacity+=dirOpcity;
+                            if(left>=leftRange[1]||left<=leftRange[0]){
+                                dirLeft=-dirLeft;
+                            }
+                            if(top>=topRange[1]||top<=topRange[0]){
+                                dirTop=-dirTop;
+                            }
+                            if(opacity>=opacityRange[1]||opacity<=opacityRange[0]){
+                                dirOpcity=-dirOpcity;
+                            }
+                            that.left=left;
+                            that.top=top;
+                            that.opacity=opacity;
+                            that.dom.css({
+                                left:left,
+                                top:top,
+                                opacity:opacity
+                            });
+                        },1/60);
+                    }
+                    go();
+                    that.dom.off("mouseenter");
+                    that.dom.off("mouseleave");
+                    that.dom.on("mouseenter",function(){
+                        var opacity=1;
+                        /*that.opacity=opacity;*/
+                        that.dom.css({
+                            opacity:opacity,
+                            zIndex:$zIndex++
+                        });
+                        clearInterval(that.timer);
+                    });
+                    that.dom.on("mouseleave",function(){
+                        //that.run();
+                        go();
+                    });
+                },
+                playCSS3Run:function(){
+                    //
+                    this.run();
+                }
+            }
+            $(document).ready(function(){
+                var zIndex=1000;
+                var itemWidth=$(".rotate_item").eq(0).width();
+                var itemArr=$(".rotate_item");
+                var styleObj=[];
+                itemArr.each(function(idx,item){
+                    new Sport({
+                        dom:$(item)
+                    });
+                });
+
+            });
+        </script>
+    </head>
+    <body>
+        <div class="login_header">
+            <div class="header_center w1200">
+                <img class="logo" src="../images/logo.png" alt="大道易图" />
+                <div class="iblock">企业定制版管理后台</div>
+            </div>
+        </div>
+        <div class="login_body">
+            <div class="login_model w1200">
+                <div class="statement"></div>
+                <div class="sun_light"></div>
+                <div class="rotate_block">
+                    <div class="rotate_item">质量审查</div>
+                    <div class="rotate_item">生产组织</div>
+                    <div class="rotate_item">经营备案</div>
+                    <div class="rotate_item">任务协作</div>
+                </div>
+                <div class="login_form">
+                    <h2>管理员账号登录</h2>
+                    <form class="form-horizontal" method="post" onsubmit="window.location.href='./company_setting.html';return false;">
+                        <div class="form-group-hard">
+                            <div class="login_form_group">
+                                <input type="text" class="form-control" id="inputEmail3" placeholder="帐号">
+                            </div>
+                        </div>
+                        <div class="form-group-hard">
+                            <div class="login_form_group">
+                                <input type="password" class="form-control" id="inputPassword3" placeholder="密码">
+                            </div>
+                        </div>
+                        <div class="form-group-hard">
+                            <div class="login_form_group">
+                                <div class="row">
+                                    <div class="col-lg-8">
+                                        <input type="text" class="form-control" id="inputPassword3" placeholder="验证码">
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <img class="validate_code" src="../images/yanzheng_code_png.png" alt="验证码" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group-hard clearfix">
+                            <div class="pull-right">
+                                <a class="default_link" href="#" target="_self">忘记密码？</a>
+                                <a class="default_link" href="#" target="_self">注册</a>
+                            </div>
+                        </div>
+                        <div class="form-group-hard">
+                            <div class="login_form_group">
+                                <button type="submit" class="btn btn-primary btn-block">登&nbsp;&nbsp;录</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="login_footer">
+            <p class="text-muted">
+                <a href="#" target="_blank" title="帮助中心">帮助中心</a>
+                <span class="split_line">|</span>
+                <a href="#" target="_blank" title="图库">图库</a>
+                <span class="split_line">|</span>
+                <a href="#" target="_blank" title="软件">软件</a>
+                <span class="split_line">|</span>
+                <span>版权所有© 2014-2017：大道易图 陕ICP15006714号-3</span>
+            </p>
+        </div>
+    </body>
+</html>
