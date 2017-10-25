@@ -31,6 +31,73 @@
                 common.hoverHeaderPic();
                 //修改右上角昵称
                 common.changeHeaderInfo();
+                var getMsgData=function(){
+                    var getData=function(){
+                        var dtd=$.Deferred(),
+                            getUrlInfo=common.getUrlInfo,
+                            url=getUrlInfo.URL+"/"+getUrlInfo.version;
+
+                        $.ajax({
+                            url:url+"/messages/list",
+                            type:"get",
+                            async:true,
+                            headers:{
+                            Authorization:"Bearer "+JSON.parse(window.localStorage.getItem("userLoginInfo"))["token"]
+                            },
+                            data:{
+                                is_history:"1"
+                            },
+                            success:function(data){
+                                dtd.resolve(data);
+                            },
+                            error:function(){
+                                dtd.reject(arguments);
+                            }
+                        });
+                        return dtd.promise();
+                    }
+                    var transType=function(type){
+                        var result=null;
+                        switch(type){
+                            case "APPR":
+                            result="审批处理";
+                            break;
+                            case "WARN":
+                            result="超时提醒";
+                            break;
+                            case "SYNE":
+                            result="任务指派";
+                            break;
+                            case "ASSI":
+                            result="文件助手";
+                            break;
+                            case "SYSI":
+                            result="系统消息";
+                            break;
+                            default:
+                            result="";
+                        }
+                        return result
+                    }
+                    $.when(getData()).done(function(DATA){
+                        console.log(111,DATA);
+                        var html="";
+                        var msg=DATA.data;
+                        console.log()
+                        if(msg.length!=0){
+                            $.each(msg,function(idx,item){
+                                html+='<tr><td><label class="dadao_input_checkbox"><input disabled class="default_checkbox" type="checkbox"><span class="checkbox_inner"></span></label></td><td><span class="itext">'+item["message"]+'</span></td><td>'+transType(item["type"])+'</td><td>'+item["create_time"]+'</td></tr>';
+                            });
+                            $("#children_checkbox").empty().html(html);
+                        }else{
+                            $("#children_checkbox").html("<tr><td colspan='3'><div class='empty'><div class='dadao_empty'></div><div class='empty_text'>暂时没有消息</div></div></td></tr>");
+                        }
+                    }).fail(function(){
+                        antdObj.message.info("获取消息列表出错，请稍后再试！",1.5);
+                        throw new Error("网络出错，请稍后再试");
+                    });
+                }
+                getMsgData();
             });
         </script>
     </head>
@@ -150,24 +217,45 @@
                                                     <a class="alink" href="./message_readed.html" target="_self">已读消息</a>
                                                     <div class="drop_line"></div>
                                                 </div>
-                                                <div class="fr set_read">
-                                                    <button class="dadao_btn">标记为已读</button>
-                                                </div>
                                             </div>
                                         </div>
                                         <div id="tab_content" class="tab_content">
                                             <div id="tab_bottom_box" class="tab_bottom_box">
                                                 <div class="tab_cnt_item active">
                                                     <div class="message message_unread">
-                                                        <div class="table_legend">已读消息：</div>
+                                                        <div class="classify clearfix">
+                                                            <div class="legend fl">已读消息：</div>
+                                                            <div class="fr">
+                                                                <select class="dadao_select dadao_select_info">
+                                                                    <option value="0">全部</option>
+                                                                    <option value="1">审批处理</option>
+                                                                    <option value="2">超时提醒</option>
+                                                                    <option value="3">任务指派</option>
+                                                                    <option value="4">文件助手</option>
+                                                                    <option value="5">系统消息</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
                                                         <table class="ui_table dadao_table table_strick">
                                                             <thead>
                                                                 <tr>
                                                                     <th>消息内容</th>
+                                                                    <th width="108">类型</th>
                                                                     <th width="98">时间</th>
                                                                 </tr>
                                                             </thead>
-                                                            <tbody>
+                                                            <tbody id="children_checkbox">
+                                                                <!-- <tr>
+                                                                    <td>
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
+                                                                        添加了
+                                                                        <a class="fj" download="滨江路二期工程优化设计.pdf" href="../styles/cssrest.css" title="点击下载">
+                                                                            滨江路二期工程优化设计.pdf
+                                                                        </a>
+                                                                    </td>
+                                                                    <td>审批处理</td>
+                                                                    <td>2017/08/05</td>
+                                                                </tr>
                                                                 <tr>
                                                                     <td>
                                                                         <a class="menber" href="#" target="_self">xxx</a>
@@ -176,40 +264,31 @@
                                                                             滨江路二期工程优化设计.pdf
                                                                         </a>
                                                                     </td>
-                                                                    <td>2017/08/05</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        <a class="menber" href="#" target="_self">xxx</a>
-                                                                        添加了
-                                                                        <a class="fj" download="滨江路二期工程优化设计.pdf" href="../styles/cssrest.css" title="点击下载">
-                                                                            滨江路二期工程优化设计.pdf
-                                                                        </a>
-                                                                    </td>
+                                                                    <td>审批处理</td>
                                                                     <td>2017/08/05</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td>***滨江路二期工程优化设计</td>
+                                                                    <td>审批处理</td>
                                                                     <td>2017/08/05</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td>***滨江路二期工程优化设计</td>
+                                                                    <td>审批处理</td>
                                                                     <td>2017/08/05</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td>***滨江路二期工程优化设计</td>
+                                                                    <td>审批处理</td>
                                                                     <td>2017/08/05</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td>***滨江路二期工程优化设计</td>
+                                                                    <td>审批处理</td>
                                                                     <td>2017/08/05</td>
-                                                                </tr>
+                                                                </tr> -->
                                                             </tbody>
                                                         </table>
-                                                        <div class="empty">
-                                                            <div class="dadao_empty"></div>
-                                                            <div class="empty_text">暂时没有消息</div>
-                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

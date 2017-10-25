@@ -174,14 +174,6 @@
                 common.hoverHeaderPic();
                 common.changeHeaderInfo();
             });
-            function receiveMessage(event){
-                console.log(event);
-                console.log(event.source==window.flow);
-                $("#flow").css({
-                    "height":event.data
-                });
-            }
-            window.addEventListener("message",receiveMessage,false);
         </script>
     </head>
     <body>
@@ -290,9 +282,6 @@
                         <div class="view_main_body">
                             <div class="body_inner default_width">
                                 <div class="desk_top desk_content">
-                                    <div style="border:1px solid #ddd;">
-                                        <iframe id="flow" name="flow" frameborder="0" src="http://192.168.4.99:84/test.html?token=ZWVfqKRaL/Rk95x+4hkY5pSI5I0Omn4jqnEvkI7nXzE1MDg3MjA0Mjg="></iframe>
-                                    </div>
                                     <div class="DD_tab tab_switch_content">
                                         <div id="tab" class="ui_tab">
                                             <div class="tab_header">
@@ -321,7 +310,7 @@
                                                                         <td>***滨江路二期工程优化设计</td>
                                                                         <td>1天</td>
                                                                         <td>
-                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="查看详情">
+                                                                            <a class="iblock content-padding" href="./todo.html" title="查看详情">
                                                                                 <span class="DaDao DaDao-chakanxiangqing"></span>
                                                                                 查看详情
                                                                             </a>
@@ -340,7 +329,7 @@
                                                                                 <span class="DaDao DaDao-chakanxiangqing"></span>
                                                                                 查看详情
                                                                             </a>
-                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="处理">
+                                                                            <a class="iblock content-padding" href="./todo.html" title="处理">
                                                                                 <span class="DaDao DaDao-dealapplyIcon"></span>
                                                                                 处理
                                                                             </a>
@@ -351,7 +340,7 @@
                                                                         <td>***滨江路二期工程优化设计</td>
                                                                         <td>1天</td>
                                                                         <td>
-                                                                            <a class="iblock content-padding" href="javascript:void(0);" title="查看详情">
+                                                                            <a class="iblock content-padding" href="./todo.html" title="查看详情">
                                                                                 <span class="DaDao DaDao-chakanxiangqing"></span>
                                                                                 查看详情
                                                                             </a>

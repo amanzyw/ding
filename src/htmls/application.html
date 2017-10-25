@@ -53,8 +53,14 @@
                         });
                         return dtd.promise();
                     }
+                    var getStringName=function(str){
+                        if(str.length>=10){
+                            return str.substr(0,10)+"...";
+                        }else{
+                            return str;
+                        }
+                    }
                     $.when(getData()).done(function(data){
-                        console.log(data);
                         if(data["code"]=="10010"){
                             alert("token过期，请重新登录！");
                             return;
@@ -64,9 +70,9 @@
                                 var result=[];
                                 $.each(arr_actions,function(idx,item){
                                     var obj=new Object();
-                                    var tamp="/v"+item["version"]+"/"+app_code+"s/"+item["action_code"];
+                                    var tamp="/v1"+"/"+app_code+"s/"+item["action_code"];
                                     obj["url"]=tamp;
-                                    obj["method"]=item["meth"];
+                                    obj["method"]=JSON.parse(item["meth"]);
                                     obj["params"]=JSON.parse(item["params"]);
                                     if(obj["params"]!=undefined){
                                         obj["params"]=obj["params"].join(",");
@@ -83,26 +89,17 @@
                             html+=  '<div class="empty_text">暂时没有应用！</div>';
                             html+='</div>';
                         }else{
+                            console.log(data);
                             $.each(data,function(idx,item){
                                 var apps="";
                                 $.each(item["apps"],function(index,one){
                                     var urls=getURL(one["actions"],one["app_code"]);
-                                    /*if(idx==1){
-                                        apps+='<div class="app_cell" data-app_code="'+one["app_code"]+'">';
-                                        apps+=    '<a class="block" href="application1.html?getURL='+urls[1]["url"]+'&&getMethod='+urls[1]["method"]+'&&getParams='+urls[1]["params"]+'&&postURL='+urls[0]["url"]+'&&postMethod='+urls[0]["method"]+'&&postParams='+urls[0]["params"]+'" target="_self" title="'+one["app_desc"]+'">';
-                                        apps+=         '<div class="app_img img_de4" style="background:url(http://ee-admin-test.baijiakeji.cn'+one["icon_url"]+') no-repeat center center;"></div>';
-                                        apps+=         '<span class="itxt">'+one["app_name"]+'</span>';
-                                        apps+=    '</a>';
-                                        apps+='</div>';
-                                    }*/
-                                    if(1){
-                                        apps+='<div class="app_cell" data-app_code="'+one["app_code"]+'">';
-                                        apps+=    '<a class="block" href="application1.html?getURL='+urls[0]["url"]+'&&getMethod='+urls[0]["method"]+'&&getParams='+urls[0]["params"]+'">';
-                                        apps+=         '<div class="app_img img_de4" style="background:url(http://ee-admin-test.baijiakeji.cn'+one["icon_url"]+') no-repeat center center;"></div>';
-                                        apps+=         '<span class="itxt">'+one["app_name"]+'</span>';
-                                        apps+=    '</a>';
-                                        apps+='</div>';
-                                    }
+                                    apps+='<div class="app_cell" data-app_code="'+one["app_code"]+'">';
+                                    apps+=    '<a title="'+one["app_name"]+'" class="block" href="application1.html?getURL='+(urls[0]&&urls[0]["url"])+'&&getMethod='+(urls[0]&&urls[0]["method"])+'&&getParams='+(urls[0]&&urls[0]["params"])+'">';
+                                    apps+=         '<div class="app_img img_de4" style="background:url(http://ee-admin-test.baijiakeji.cn'+one["icon_url"]+') no-repeat center center;"></div>';
+                                    apps+=         '<span class="itxt">'+getStringName(one["app_name"])+'</span>';
+                                    apps+=    '</a>';
+                                    apps+='</div>';
 
                                 });
                                 html+='<li class="app_item management" data-company_id="'+item["company_id"]+'" data-del="'+item["company_id"]+'" data-desc="'+item["desc"]+'" data-group_id="'+item["group_id"]+'" data-groupid="'+item["groupid"]+'" data-status="'+item["status"]+'" data-update_time="'+item["update_time"]+'">';

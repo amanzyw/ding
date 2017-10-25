@@ -6,12 +6,10 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
         <script type="text/javascript" src="../../commonFunc.bundle.js"></script>
         <script type="text/javascript" src="../scripts/socket.js"></script>
-        <script id="jquery" type="text/javascript" src="../scripts/jquery.js"></script>
+        <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
+        <script type="text/javascript" src="../scripts/echarts.simple.min.js"></script>
         <script type="text/javascript" src="../scripts/main.js"></script>
-        <script type="text/javascript" src="../scripts/old.main.js"></script><!--
-        <script type="text/javascript" src="../scripts/plugins/gridView/yii.js"></script>
-        <script type="text/javascript" src="../scripts/plugins/gridView/yii.gridView.js"></script>
-        <script type="text/javascript" src="../scripts/plugins/jquery-pjax/jquery.pjax.js"></script> -->
+        <script type="text/javascript" src="../scripts/old.main.js"></script>
         <script>
             common.getMsg();
         </script>
@@ -19,7 +17,6 @@
         <link rel="stylesheet" href="../styles/cssrest.css" />
         <link rel="stylesheet" href="../styles/app.css" />
         <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_w094gou4uzddkj4i.css" />
-        <link rel="stylesheet" href="../../styles/bootstrap.min.css" />
         <script>
             $(document).ready(function(){
                 if(!common.isLogin){
@@ -30,84 +27,20 @@
                 }
                 //开启tooltip提示
                 common.tooltip();
+
                 //左下角头像点击面板
                 common.hoverHeaderPic();
-                var getXport=function(){
-                    var getParams=function(){
-                        var url=window.location.href,tamp=null,result=new Object();
-                        url=url.split("?");
-                        url[1].split("&&").forEach(function(item,idx){
-                            tamp=item.split("=");
-                            result[tamp[0]]=tamp[1];
-                        });
-                        return result;
-                    }
-                    var a=getParams();
-                    console.log(a);
-                    $.ajax({
-                        url:"http://ee-api-test.baijiakeji.cn"+a["getURL"],
-                        method:a["getMethod"],
-                        async:true,
-                        headers:{
-                            Authorization:"Bearer "+JSON.parse(window.localStorage.getItem("userLoginInfo"))["token"]
-                        },
-                        dataType:"json",
-                        success:function(data){
-                            console.log(typeof data);
-                            //$("#jquery").remove();
-                            var regexp=/\<script.*\>[^\>\<]*\<\/script\>/img;
-                            var html=data.html;
-                            var result=html.match(regexp);
-                            var srcRegExp=/src=\"(.*)\"/;
-                            var tamp=null;
-                            var srcArr=[];
-                            var scriptArr=[];
-                            var obj=[];
-                            //$("#data-box").append(data.html);
-                            //return;
-                            $.each(result,function(idx,item){
-                                //$("body").append(item);
-                                html=html.replace(item,"");
-                                tamp=item.match(srcRegExp);
-                                if(tamp!=undefined){
-                                    srcArr.push(tamp[1]);
-                                }else{
-                                    scriptArr.push(item);
-                                }
-                            });
-                            $("#data-box").empty().html(html);
-                            $.each(srcArr,function(idx,item){
-                                jQuery.getScript(item,function(){
-                                    obj.push(true);
-                                    if(obj.length==srcArr.length){
-                                        console.log(obj,222)
-                                        $.each(scriptArr,function(idx1,item1){
-                                            $("body").append(item1)
-                                        });
-                                    }
-                                });
-                                $("body").append("<script src='"+item+"'><\/script>")
-                            });
-
-                        }
-
-                    });
-                }
-                getXport();
                 common.changeHeaderInfo();
             });
+            function msgHandle(event){
+                var height=event.data;
+                console.log(height);
+                $("#flow").css({
+                    height:height
+                });
+            }
+            window.addEventListener("message",msgHandle,false);
         </script>
-        <style>
-            .data-box{
-                padding:8px 20px;
-            }
-            .mod-head{
-                height:auto!important;
-            }
-            .table-bordered{
-                border:none;
-            }
-        </style>
     </head>
     <body>
         <div id="window" class="window">
@@ -126,7 +59,7 @@
                                 <div class="user fr">
                                     <div class="user_model">
                                         <span class="date">2017年8月22日 星期二</span>
-                                        <span class="welcome">欢迎您，<i id="uname">xxx</i> </span>
+                                        <span class="welcome">欢迎您，<i id="uname">xxx</i></span>
                                     </div>
                                 </div>
                             </div>
@@ -138,7 +71,7 @@
                         <div class="view_left_menu">
                             <div class="left_menu_model">
                                 <ul id="menus_box" class="menus_box">
-                                    <li class="menu_item">
+                                    <li class="menu_item active">
                                         <a class="menu_link" data-tooltip="工作台" data-arrow-direction="right" href="./desk.html" target="_self">
                                             <span class="DaDao DaDao-gongzuotaixuanzhong"></span>
                                         </a>
@@ -148,7 +81,7 @@
                                             <span class="DaDao DaDao-xiangmu"></span>
                                         </a>
                                     </li>
-                                    <li class="menu_item active">
+                                    <li class="menu_item">
                                         <a class="menu_link" data-tooltip="应用中心" data-arrow-direction="right" href="./application.html" target="_self">
                                             <span class="DaDao DaDao-yingyongzhongxin"></span>
                                         </a>
@@ -176,7 +109,7 @@
                                         </a>
                                     </div>
                                     <!-- <div class="setting_item setting_t">
-                                        <a class="setting_link" data-tooltip="用户设置" data-arrow-direction="right" href="javascript:void(0);">
+                                        <a class="setting_link" data-tooltip="用户设置" data-arrow-direction="right" href="./personal_setting.html" target="_self">
                                             <span class="DaDao DaDao-gerenshezhi"></span>
                                         </a>
                                     </div> -->
@@ -214,8 +147,9 @@
                     <section id="main_body" class="main_body">
                         <div class="view_main_body">
                             <div class="body_inner default_width">
-                                <div class="application_box">
-                                    <div class="data-box" id="data-box">
+                                <div class="desk_top desk_content">
+                                    <div>
+                                        <iframe frameborder="0" id="flow" name="flow" src="http://192.168.4.99:84/test.html" style="margin-top:15px;"></iframe>
                                     </div>
                                 </div>
                             </div>

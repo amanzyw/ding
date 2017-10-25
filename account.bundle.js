@@ -64239,11 +64239,11 @@ var AccountBind = function (_React$Component6) {
             email: userInfoMation.email
         };
         _this6.sendPhoneConfig = {
-            totalTime: 10,
+            totalTime: 180,
             currentTime: 0
         };
         _this6.sendEmailConfig = {
-            totalTime: 10,
+            totalTime: 180,
             currentTime: 0
         };
         return _this6;
@@ -64277,11 +64277,12 @@ var AccountBind = function (_React$Component6) {
         }
     }, {
         key: 'getEmailCode',
-        value: function getEmailCode() {
+        value: function getEmailCode(jumpBoolean) {
             this.setState({
                 isGetting1: true
             });
             var that = this,
+                jump = jumpBoolean || false,
                 emailAddress = _reactDom2.default.findDOMNode(this.refs.emailAddress).value,
                 totalTime = this.sendEmailConfig.totalTime,
                 currentTime = this.sendEmailConfig.currentTime,
@@ -64322,33 +64323,35 @@ var AccountBind = function (_React$Component6) {
                 });
                 return;
             }
-
-            _jquery2.default.when(that.getPhoneCodeNum({ email: emailAddress, time: 1 })).done(function (data) {
-                console.log(2222, data);
-                if (data["code"] == undefined) {
-                    //没有错误，发送正确
-                    getEmailCode();
-                } else {
-                    //
-                    _message2.default.info("发送失败，请稍候再试！", 1.5);
+            if (!jump) {
+                _jquery2.default.when(that.getPhoneCodeNum({ email: emailAddress, time: 3 })).done(function (data) {
+                    if (data["code"] == undefined) {
+                        //没有错误，发送正确
+                        getEmailCode();
+                    } else {
+                        _message2.default.info("发送失败，请稍候再试！", 1.5);
+                        that.setState({
+                            isGetting1: false
+                        });
+                    }
+                }).fail(function (err) {
+                    _message2.default.info("网络出现错误，请稍候再试！", 1.5);
                     that.setState({
                         isGetting1: false
                     });
-                }
-            }).fail(function (err) {
-                _message2.default.info("网络出现错误，请稍候再试！", 1.5);
-                that.setState({
-                    isGetting1: false
                 });
-            });
+            } else {
+                getEmailCode();
+            }
         }
     }, {
         key: 'getPhoneNum',
-        value: function getPhoneNum() {
+        value: function getPhoneNum(jumpBoolean) {
             this.setState({
                 isGetting: true
             });
             var that = this,
+                jump = jumpBoolean || false,
                 phoneNum = _reactDom2.default.findDOMNode(this.refs.phoneNum).value,
                 totalTime = this.sendPhoneConfig.totalTime,
                 currentTime = this.sendPhoneConfig.currentTime,
@@ -64389,25 +64392,27 @@ var AccountBind = function (_React$Component6) {
                 });
                 return;
             }
-
-            _jquery2.default.when(that.getPhoneCodeNum({ phone: phoneNum, time: 1 })).done(function (data) {
-                console.log(111, data);
-                if (data["code"] == undefined) {
-                    //没有错误，发送正确
-                    getPhoneCode();
-                } else {
-                    //
-                    _message2.default.info("发送失败，请稍候再试！", 1.5);
+            if (!jump) {
+                _jquery2.default.when(that.getPhoneCodeNum({ phone: phoneNum, time: 3 })).done(function (data) {
+                    if (data["code"] == undefined) {
+                        //没有错误，发送正确
+                        getPhoneCode();
+                    } else {
+                        //
+                        _message2.default.info("发送失败，请稍候再试！", 1.5);
+                        that.setState({
+                            isGetting: false
+                        });
+                    }
+                }).fail(function (err) {
+                    _message2.default.info("网络出现错误，请稍候再试！", 1.5);
                     that.setState({
                         isGetting: false
                     });
-                }
-            }).fail(function (err) {
-                _message2.default.info("网络出现错误，请稍候再试！", 1.5);
-                that.setState({
-                    isGetting: false
                 });
-            });
+            } else {
+                getPhoneCode();
+            }
         }
     }, {
         key: 'gotoBindPhoneNum',
@@ -64447,19 +64452,63 @@ var AccountBind = function (_React$Component6) {
     }, {
         key: 'bindRightNow',
         value: function bindRightNow() {
-            var phoneNum = _reactDom2.default.findDOMNode(this.refs.phoneNum);
-            this.setState({
-                phoneNum: phoneNum.value,
-                isBindingPhone: false
+            var that = this,
+                phoneNum = _reactDom2.default.findDOMNode(this.refs.phoneNum),
+                code = _reactDom2.default.findDOMNode(that.refs.phoneCode);
+            _jquery2.default.when(that.getPhoneCodeNum({ phone: phoneNum.value, code: code.value })).done(function (data) {
+                if (data["code"] == undefined) {
+                    //修改成功
+                    _message2.default.success("修改成功", 1.5);
+                    that.setState({
+                        phoneNum: phoneNum.value,
+                        isBindingPhone: false
+                    });
+                } else {}
+            }).fail(function () {
+                _message2.default.info("网络出现错误，请稍候再试！", 1.5);
+                that.setState({
+                    isBindingPhone: false
+                });
             });
         }
     }, {
         key: 'bindEmailRightNow',
         value: function bindEmailRightNow() {
-            var email = _reactDom2.default.findDOMNode(this.refs.emailAddress);
-            this.setState({
-                email: email.value,
-                isBindingEmail: false
+            var that = this,
+                email = _reactDom2.default.findDOMNode(this.refs.emailAddress),
+                code = _reactDom2.default.findDOMNode(that.refs.emailCode);
+            if (email.value == "" || email.value == null) {
+                _message2.default.info("请输入一个邮箱地址", 1.5);
+                return;
+            }
+            if (!EmailRegister.test(email.value)) {
+                _message2.default.info("请输入一个有效的邮箱", 1.5);
+                return;
+            }
+            if (code.value == "" || code.value == null) {
+                _message2.default.info("请输入验证码", 1.5);
+                return;
+            }
+            _jquery2.default.when(that.getPhoneCodeNum({ email: email.value, code: code.value })).done(function (data) {
+                if (data["code"] == undefined) {
+                    //修改成功
+                    _message2.default.success("修改成功", 1.5);
+                    that.setState({
+                        email: email.value,
+                        isBindingEmail: false
+                    });
+                } else {
+                    switch (data["code"]) {
+                        case "21312":
+                            _message2.default.info("验证码失效", 1.5);
+                            break;
+                    }
+                }
+            }).fail(function () {
+                _message2.default.info("网络出现错误，请稍候再试！", 1.5);
+                that.setState({
+                    isBindingPhone: false
+                });
             });
         }
         //发送邮箱验证码
@@ -64504,10 +64553,10 @@ var AccountBind = function (_React$Component6) {
             });
             var currentTime = this.sendEmailConfig.currentTime,
                 that = this;
-            console.log(this.state);
+            console.log(currentTime);
             if (currentTime != 0) {
                 setTimeout(function () {
-                    that.getEmailCode();
+                    that.getEmailCode(true);
                 }, 1);
             }
         }
@@ -64703,7 +64752,9 @@ var AccountBind = function (_React$Component6) {
                                                     { className: 'iblock send_code' },
                                                     _react2.default.createElement(
                                                         'button',
-                                                        { disabled: isGetting, ref: 'sendPhoneBtn', onClick: this.getPhoneNum.bind(this), className: 'dadao_btn dadao_btn_lg dadao_btn_primary' },
+                                                        { disabled: isGetting, ref: 'sendPhoneBtn', onClick: function () {
+                                                                this.getPhoneNum();
+                                                            }.bind(this), className: 'dadao_btn dadao_btn_lg dadao_btn_primary' },
                                                         '\u83B7\u53D6\u9A8C\u8BC1\u7801'
                                                     )
                                                 )
@@ -64781,7 +64832,9 @@ var AccountBind = function (_React$Component6) {
                                                 { className: 'iblock send_code' },
                                                 _react2.default.createElement(
                                                     'button',
-                                                    { disabled: isGetting1, ref: 'sendEmailCodeBtn', onClick: this.getEmailCode.bind(this), className: 'dadao_btn dadao_btn_lg dadao_btn_primary' },
+                                                    { disabled: isGetting1, ref: 'sendEmailCodeBtn', onClick: function (evt) {
+                                                            this.getEmailCode();
+                                                        }.bind(this), className: 'dadao_btn dadao_btn_lg dadao_btn_primary' },
                                                     '\u83B7\u53D6\u9A8C\u8BC1\u7801'
                                                 )
                                             )

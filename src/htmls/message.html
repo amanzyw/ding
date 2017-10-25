@@ -7,7 +7,6 @@
         <script type="text/javascript" src="../../commonFunc.bundle.js"></script>
         <script type="text/javascript" src="../scripts/socket.js"></script>
         <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
-        <script type="text/javascript" src="../scripts/echarts.simple.min.js"></script>
         <script type="text/javascript" src="../scripts/main.js"></script>
         <script type="text/javascript" src="../scripts/old.main.js"></script>
         <script>
@@ -94,50 +93,92 @@
                 }
                 //全选
                 var checkedAll=function(){
-                    var allBtn=$("#checkall"),
+                    $("body").on("click","#checkall",function(){
+                        var allBtn=$("#checkall"),
                         box=$("#children_checkbox"),
                         checkboxs=box.find("input");
-                    allBtn.on("click",function(){
                         var value=allBtn.prop("checked");
                         if(value){
+                            $("#children_checkbox").removeClass("checkbox_hide");
                             checkboxs.each(function(idx,item){
                                 checkboxs.eq(idx).prop("checked",true);
                             });
                         }else{
+                            $("#children_checkbox").addClass("checkbox_hide");
                             checkboxs.each(function(idx,item){
                                 checkboxs.eq(idx).prop("checked",false);
                             });
                         }
                     });
-                    checkboxs.each(function(idx,item){
-                        checkboxs.eq(idx).on("click",function(){
-                            var value=$(this).prop("checked");
-                            var tamp=null;
-                            var result=true;
-                            if(value){
-                                checkboxs.each(function(index,one){
-                                    tamp=checkboxs.eq(index).prop("checked");
-                                    if(!tamp){
-                                        result=false;
-                                        return false;
-                                    }
-                                });
-                                if(result){
-                                   allBtn.prop("checked",true);
-                                }
-                            }else{
-                                allBtn.prop("checked",false);
+                }
+                var getMsgData=function(){
+                    var getData=function(){
+                        var dtd=$.Deferred(),
+                            getUrlInfo=common.getUrlInfo,
+                            url=getUrlInfo.URL+"/"+getUrlInfo.version;
+
+                        $.ajax({
+                            url:url+"/messages/list",
+                            type:"get",
+                            async:true,
+                            headers:{
+                            Authorization:"Bearer "+JSON.parse(window.localStorage.getItem("userLoginInfo"))["token"]
+                            },
+                            data:{/*
+                                is_history:"1"*/
+                            },
+                            success:function(data){
+                                dtd.resolve(data);
+                            },
+                            error:function(){
+                                dtd.reject(arguments);
                             }
                         });
+                        return dtd.promise();
+                    }
+                    var transType=function(type){
+                        var result=null;
+                        switch(type){
+                            case "APPR":
+                            result="审批处理";
+                            break;
+                            case "WARN":
+                            result="超时提醒";
+                            break;
+                            case "SYNE":
+                            result="任务指派";
+                            break;
+                            case "ASSI":
+                            result="文件助手";
+                            break;
+                            case "SYSI":
+                            result="系统消息";
+                            break;
+                            default:
+                            result="";
+                        }
+                        return result
+                    }
+                    $.when(getData()).done(function(DATA){
+                        console.log(111,DATA);
+                        var html="";
+                        var msg=DATA.data;
+                        if(msg.length!=0){
+                            $.each(msg,function(idx,item){
+                            html+='<tr><td><label class="dadao_input_checkbox"><input disabled class="default_checkbox" type="checkbox"><span class="checkbox_inner"></span></label></td><td><span class="itext">'+item["message"]+'</span></td><td>'+transType(item["type"])+'</td><td>'+item["create_time"]+'</td></tr>';
+                            });
+                            $("#children_checkbox").empty().html(html);
+                        }else{
+                            $("#children_checkbox").html("<tr><td colspan='4'><div class='empty'><div class='dadao_empty'></div><div class='empty_text'>暂时没有消息</div></div></td></tr>");
+                        }
+                    }).fail(function(){
+                        antdObj.message.info("获取消息列表出错，请稍后再试！",1.5);
+                        throw new Error("网络出错，请稍后再试");
                     });
                 }
-                //tab切换
-                //tabSwitch();
-                $(window).on("resize",function(){
-                    tabSwitch();
-                });
-                //全选
                 checkedAll();
+                //请求message数据
+                getMsgData();
                 //左下角头像点击面板
                 common.hoverHeaderPic();
                 common.changeHeaderInfo();
@@ -269,19 +310,6 @@
                                             <div id="tab_bottom_box" class="tab_bottom_box">
                                                 <div class="tab_cnt_item active">
                                                     <div id="unread_frame" class="message message_unread">
-                                                        <div class="classify clearfix">
-                                                            <div class="legend fl">未读消息：</div>
-                                                            <div class="fr">
-                                                                <select class="dadao_select dadao_select_info">
-                                                                    <option value="0">全部</option>
-                                                                    <option value="1">审批处理</option>
-                                                                    <option value="2">超时提醒</option>
-                                                                    <option value="3">任务指派</option>
-                                                                    <option value="4">文件助手</option>
-                                                                    <option value="5">系统消息</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
                                                         <table class="ui_table dadao_table table_strick">
                                                             <thead>
                                                                 <tr>
@@ -294,26 +322,11 @@
                                                                     </th>
                                                                     <th>消息内容</th>
                                                                     <th width="108">类型</th>
-                                                                    <th width="98">时间</th>
+                                                                    <th width="178">时间</th>
                                                                 </tr>
                                                             </thead>
-                                                            <tbody id="children_checkbox">
+                                                            <tbody class="message_tbody checkbox_hide" id="children_checkbox">
                                                                 <!-- <tr>
-                                                                    <td>
-                                                                        <label class="dadao_input_checkbox">
-                                                                            <input class="default_checkbox" type="checkbox" />
-                                                                            <span class="checkbox_inner"></span>
-                                                                        </label>
-                                                                    </td>
-                                                                    <td>
-                                                                        您提交的项目<a class="fj" download="滨江路二期工程优化设计.pdf" href="../styles/cssrest.css" title="点击下载">
-                                                                            滨江路二期工程优化设计.pdf
-                                                                        </a>备案登记审核已通过
-                                                                    </td>
-                                                                    <td>系统消息</td>
-                                                                    <td>2017/08/05</td>
-                                                                </tr> -->
-                                                                <tr>
                                                                     <td>
                                                                         <label class="dadao_input_checkbox">
                                                                             <input class="default_checkbox" type="checkbox" />
@@ -323,7 +336,6 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
                                                                         <a class="fj"  href="../styles/cssrest.css" title="项目信息登记">
                                                                             项目信息登记
                                                                         </a>
@@ -342,7 +354,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="经营计划提请">
                                                                             经营计划提请
                                                                         </a>
@@ -361,7 +373,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="经营结果录入">
                                                                             经营结果录入
                                                                         </a>
@@ -380,7 +392,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="购买标书报名评审">
                                                                             购买标书报名评审
                                                                         </a>
@@ -399,7 +411,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="标书评审投标请示">
                                                                             标书评审投标请示
                                                                         </a>
@@ -418,7 +430,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="生产计划提请">
                                                                             生产计划提请
                                                                         </a>
@@ -437,7 +449,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="分包需求评审">
                                                                             分包需求评审
                                                                         </a>
@@ -456,7 +468,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="分包方评审">
                                                                             分包方评审
                                                                         </a>
@@ -475,7 +487,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="成果审核">
                                                                             成果审核
                                                                         </a>
@@ -494,7 +506,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="成果出版审查会">
                                                                             成果出版审查会
                                                                         </a>
@@ -513,7 +525,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="生产完结">
                                                                             生产完结
                                                                         </a>
@@ -532,7 +544,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="资质备案申请">
                                                                             资质备案申请
                                                                         </a>
@@ -551,7 +563,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="备案信息录入">
                                                                             备案信息录入
                                                                         </a>
@@ -570,7 +582,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="合同会签评审">
                                                                             合同会签评审
                                                                         </a>
@@ -589,7 +601,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="专项开支申请">
                                                                             专项开支申请
                                                                         </a>
@@ -608,7 +620,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="项目完结申请">
                                                                             项目完结申请
                                                                         </a>
@@ -630,7 +642,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="项目信息登记">
                                                                             项目信息登记
                                                                         </a>
@@ -652,7 +664,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="项目信息登记">
                                                                             项目信息登记
                                                                         </a>
@@ -674,7 +686,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="经营计划提请">
                                                                             经营计划提请
                                                                         </a>
@@ -694,7 +706,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="经营计划提请">
                                                                             经营计划提请
                                                                         </a>
@@ -713,7 +725,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="经营结果录入">
                                                                             经营结果录入
                                                                         </a>
@@ -733,7 +745,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="经营结果录入">
                                                                             经营结果录入
                                                                         </a>
@@ -753,7 +765,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="购买标书报名评审">
                                                                             购买标书报名评审
                                                                         </a>
@@ -773,7 +785,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="购买标书报名评审">
                                                                             购买标书报名评审
                                                                         </a>
@@ -793,7 +805,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="标书评审投标请示">
                                                                             标书评审投标请示
                                                                         </a>
@@ -813,7 +825,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="标书评审投标请示">
                                                                             标书评审投标请示
                                                                         </a>
@@ -833,7 +845,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="生产计划提醒">
                                                                             生产计划提醒
                                                                         </a>
@@ -853,7 +865,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="生产计划提醒">
                                                                             生产计划提醒
                                                                         </a>
@@ -873,7 +885,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="分包需求评审">
                                                                             分包需求评审
                                                                         </a>
@@ -893,7 +905,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="分包需求评审">
                                                                             分包需求评审
                                                                         </a>
@@ -913,7 +925,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="分包方评审">
                                                                             分包方评审
                                                                         </a>
@@ -933,7 +945,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="分包方评审">
                                                                             分包方评审
                                                                         </a>
@@ -953,7 +965,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="成果审核">
                                                                             成果审核
                                                                         </a>
@@ -973,7 +985,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="成果审核">
                                                                             成果审核
                                                                         </a>
@@ -993,7 +1005,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="成果出版审查会">
                                                                             成果出版审查会
                                                                         </a>
@@ -1013,7 +1025,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="成果出版审查会签">
                                                                             成果出版审查会签
                                                                         </a>
@@ -1033,7 +1045,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="生产完结">
                                                                             生产完结
                                                                         </a>
@@ -1053,7 +1065,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="生产完结">
                                                                             生产完结
                                                                         </a>
@@ -1073,7 +1085,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="资质备案申请">
                                                                             资质备案申请
                                                                         </a>
@@ -1093,7 +1105,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="资质备案申请">
                                                                             资质备案申请
                                                                         </a>
@@ -1113,7 +1125,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="备案信息录入">
                                                                             备案信息录入
                                                                         </a>
@@ -1133,7 +1145,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="备案信息录入">
                                                                             备案信息录入
                                                                         </a>
@@ -1153,7 +1165,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="合同会签评审">
                                                                             合同会签评审
                                                                         </a>
@@ -1173,7 +1185,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="合同会签评审">
                                                                             合同会签评审
                                                                         </a>
@@ -1193,7 +1205,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="专项开支申请">
                                                                             专项开支申请
                                                                         </a>
@@ -1213,7 +1225,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="专项开支申请">
                                                                             专项开支申请
                                                                         </a>
@@ -1233,7 +1245,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="项目完结申请">
                                                                             项目完结申请
                                                                         </a>
@@ -1253,7 +1265,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="项目完结申请">
                                                                             项目完结申请
                                                                         </a>
@@ -1273,7 +1285,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="项目完结申请">
                                                                             项目完结申请
                                                                         </a>
@@ -1293,7 +1305,7 @@
                                                                     <td>
                                                                         <span class="imenber">冯佳佳</span>
                                                                         <span class="itext">发起的</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="项目信息登记">
                                                                             项目信息登记
                                                                         </a>
@@ -1312,7 +1324,7 @@
                                                                     <td>
                                                                         <span class="imenber">您</span>
                                                                         <span class="itext">参与的项目</span>
-                                                                        <!-- <a class="menber" href="#" target="_self">xxx</a> -->
+                                                                        <a class="menber" href="#" target="_self">xxx</a>
                                                                         <a class="fj"  href="../styles/cssrest.css" title="xxxx">
                                                                             xxxx
                                                                         </a>
@@ -1390,13 +1402,9 @@
                                                                     </td>
                                                                     <td>系统消息</td>
                                                                     <td>2017/08/06</td>
-                                                                </tr>
+                                                                </tr> -->
                                                             </tbody>
                                                         </table>
-                                                        <div class="empty">
-                                                            <div class="dadao_empty"></div>
-                                                            <div class="empty_text">暂时没有消息</div>
-                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
