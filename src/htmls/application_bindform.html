@@ -6,14 +6,14 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
         <script type="text/javascript" src="../../commonFunc.bundle.js"></script>
         <script type="text/javascript" src="../scripts/socket.js"></script>
-        <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
-        <script type="text/javascript" src="../scripts/echarts.simple.min.js"></script>
+        <script id="jquery" type="text/javascript" src="../scripts/jquery.js"></script>
         <script type="text/javascript" src="../scripts/main.js"></script>
         <script type="text/javascript" src="../scripts/old.main.js"></script>
         <link rel="stylesheet" href="../styles/antd.css" />
         <link rel="stylesheet" href="../styles/cssrest.css" />
         <link rel="stylesheet" href="../styles/app.css" />
         <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_w094gou4uzddkj4i.css" />
+        <link rel="stylesheet" href="../../styles/bootstrap.min.css" />
         <script>
             $(document).ready(function(){
                 common.getMsg();
@@ -27,65 +27,184 @@
                 common.tooltip();
                 //左下角头像点击面板
                 common.hoverHeaderPic();
-                //修改密码
-                $(document).on("click","#ichange",function(){
-                    var box=$("#psdChangeBox"),
-                        userLoginInfo=common.storageFunc.get("userLoginInfo"),
-                        inputs=$("#psdChangeBox").find("input"),
-                        psd=inputs.eq(0).val(),
-                        newPSD1=inputs.eq(1).val(),
-                        newPSD2=inputs.eq(2).val();
-                        if(userLoginInfo==undefined){
-                            let islogin=confirm("您还没有登录，去登录？");
-                            if(islogin){
-                                window.location.href="http://192.168.0.145:8000";
+                var parseJSONInfo=function(){
+                    var getParams=function(){
+                        var url=window.location.href,tamp=null,result=new Object();
+                        url=url.split("?");
+                        url[1].split("&&").forEach(function(item,idx){
+                            tamp=item.split("=");
+                            result[tamp[0]]=tamp[1];
+                        });
+                        return result;
+                    }
+                    var getUrlInfo=common.getUrlInfo;
+                    var url=getUrlInfo.URL;
+                    var version=getUrlInfo.version;
+                    var a=getParams();
+                    var readyScript=[];
+                    console.log(a);
+                    //获取数据接口
+                    var getData=function(){
+                        var dtd=$.Deferred();
+                        $.ajax({
+                            url:url+a["getURL"],
+                            url:"../scripts/testDATA/Apptestincrease.json",
+                            method:a["getMethod"],
+                            async:true,
+                            headers:{
+                                Authorization:"Bearer "+JSON.parse(window.localStorage.getItem("userLoginInfo"))["token"]
+                            },
+                            dataType:"json",
+                            success:function(data){
+                                dtd.resolve(data);
+                            },
+                            error:function(){
+                                dtd.reject(arguments);
                             }
-                            return;
+                        });
+                        return dtd.promise();
+                    }
+                    //插入文档
+                    var injectScriptFun=function(html,Stylearr,Scriptarr,insertScriptArr){//html,是要插入的html;arr中放入的是要插入的script库;insertScript是待执行的js语句
+                        var tamp=null,
+                            assets_URL="../scripts/plugins/application_assets/",
+                            body=$("body"),
+                            head=$("head");
+                        $("#data-box").html(html);
+                        $.each(Stylearr,function(idx,item){
+                            head.append("<link rel='stylesheet' href='"+(assets_URL+"/"+item)+"'>");
+                        });
+                        $.each(Scriptarr,function(idx,item){
+                            tamp=assets_URL+item;
+                            ;(function(tamp){
+                                $.getScript(tamp,function(){
+                                    console.log(tamp);
+                                    readyScript.push(true);
+                                    body.append("<script src='"+tamp+"'><\/script>");
+                                    if(readyScript.length==Scriptarr.length){
+                                        console.log('script ready!');
+                                        $.each(insertScriptArr,function(idx,item){
+                                            $("body").append("<script>"+item+"<\/script>");
+                                        });
+                                    }
+                                });
+                            })(tamp);
+                        });
+                    }
+                    //获取当前界面的style库集合跟script库集合
+                    var getCurrentScriptAndStyle=function(){
+                        var tamp=null,
+                            po=null,
+                            styleArr=[],
+                            scriptArr=[];
+                        $("link").each(function(idx,item){
+                            tamp=$(this).attr("href");
+                            po=tamp.lastIndexOf("/");
+                            if(po!=-1){
+                                tamp=tamp.substr(po+1);
+                            }
+                            styleArr.push(tamp);
+                        });
+                        $("script").each(function(idx,item){
+                            tamp=$(this).attr("src");
+                            if(tamp!=undefined){
+                                po=tamp.lastIndexOf("/");
+                                if(po!=-1){
+                                    tamp=tamp.substr(po+1);
+                                }
+                                scriptArr.push(tamp);
+                            }
+                        });
+                        return {
+                            styleArr:styleArr,
+                            scriptArr:scriptArr
                         }
-                        if(psd==""||newPSD1==""||newPSD2==""){
-                            alert("密码或者新密码不能为空!");
-                            return;
-                        }
-                        if(newPSD1!=newPSD2){
-                            alert("新密码要一致！");
-                            return;
-                        }
-                        userLoginInfo=JSON.parse(userLoginInfo);
-
-                        var token={
-                            Authorization:"Bearer "+userLoginInfo["token"]
-                        }
-                        var userLoginInfo=common.getUrlInfo,
-                        URL=userLoginInfo.URL+"/"+userLoginInfo.version;
-                        var changePSD=function(){
-                            var dtd=$.Deferred();
-                            $.ajax({
-                                url:URL+"/employees/resetpwd",
-                                type:"post",
-                                dataType:"json",
-                                async:true,
-                                headers:token,
-                                data:{
-                                    password:psd
-                                },
-                                success:function(data){
-                                    dtd.resolve(data);
-                                },
-                                error:function(){
-                                    dtd.reject(arguments);
+                    }
+                    //应该插入的文件中，去掉重复文件
+                    var removeRepeatFiles=function(currentFrameSet,injectStyle,injectScript){
+                        var tamp=null,
+                            styleSet=[],
+                            scriptSet=[];
+                        if($.isArray(injectStyle)){
+                            $.each(injectStyle,function(idx,item){
+                                tamp=item.lastIndexOf("/");
+                                tamp=tamp==-1?item:item.substr(tamp+1);
+                                if($.inArray(tamp,currentFrameSet.styleArr)==-1){
+                                    styleSet.push(tamp);
                                 }
                             });
-                            return dtd;
+                        }else{
+                            tamp=injectStyle.lastIndexOf("/");
+                            tamp=tamp==-1?injectStyle:injectStyle.substr(tamp+1);
+                            if($.inArray(tamp,currentFrameSet.styleArr)==-1){
+                                styleSet.push(tamp);
+                            }
                         }
-                        $.when(changePSD()).done(function(data){
-                            console.log(1111,data);
-                        }).fail(function(errorInfo){
-                            console.log(2222,errorInfo);
-                        });
-                });
+                        if($.isArray(injectScript)){
+                            $.each(injectScript,function(idx,item){
+                                tamp=item.lastIndexOf("/");
+                                tamp=tamp==-1?item:item.substr(tamp+1);
+                                if($.inArray(tamp,currentFrameSet.scriptArr)==-1){
+                                    scriptSet.push(tamp);
+                                }
+                            });
+                        }else{
+                            tamp=injectStyle.lastIndexOf("/");
+                            tamp=tamp==-1?injectStyle:injectStyle.substr(tamp+1);
+                            if($.inArray(tamp,currentFrameSet.scriptArr)==-1){
+                                scriptSet.push(tamp);
+                            }
+                        }
+                        return {
+                            injectStyle:styleSet,
+                            injectScript:scriptSet
+                        }
+                        console.log(styleSet,scriptSet);
+                    }
+                    //解析出要插入的js语句
+                    var parseScrpt=function(js){
+                        var result=[];
+                        for(var i in js){
+                            for(var j in js[i]){
+                                result.push(js[i][j])
+                            }
+                        }
+                        return result;
+                    }
+                    $.when(getData()).done(function(data){
+                        var currentStyleScript=null,
+                            mustInsertSet=null,
+                            evalScriptSent=null;
+                        console.log(data,typeof data);
+                        try{
+                            currentStyleScript=getCurrentScriptAndStyle();
+                            mustInsertSet=removeRepeatFiles(currentStyleScript,data["index"]["cssFiles"],data["index"]["jsFiles"]);
+                            evalScriptSent=parseScrpt(data["index"]["js"]);
+                            console.log(mustInsertSet);
+                            injectScriptFun(data["index"]["html"],mustInsertSet["injectStyle"],mustInsertSet["injectScript"],evalScriptSent);
+                        }catch(e){
+                            throw new Error(e);
+                        }
+                    }).fail(function(){
+                        antdObj.message.info("获取数据出错！");
+                    });
+                }
+                parseJSONInfo();
+                //修改右上角头部信息
                 common.changeHeaderInfo();
             });
         </script>
+        <style>
+            .data-box{
+                padding:8px 20px;
+            }
+            .mod-head{
+                height:auto!important;
+            }
+            .table-bordered{
+                border:none;
+            }
+        </style>
     </head>
     <body>
         <div id="window" class="window">
@@ -126,7 +245,7 @@
                                             <span class="DaDao DaDao-xiangmu"></span>
                                         </a>
                                     </li>
-                                    <li class="menu_item">
+                                    <li class="menu_item active">
                                         <a class="menu_link" data-tooltip="应用中心" data-arrow-direction="right" href="./application.html" target="_self">
                                             <span class="DaDao DaDao-yingyongzhongxin"></span>
                                         </a>
@@ -154,7 +273,7 @@
                                         </a>
                                     </div>
                                     <!-- <div class="setting_item setting_t">
-                                        <a class="setting_link active" data-tooltip="用户设置" data-arrow-direction="right" href="../htmls/">
+                                        <a class="setting_link" data-tooltip="用户设置" data-arrow-direction="right" href="javascript:void(0);">
                                             <span class="DaDao DaDao-gerenshezhi"></span>
                                         </a>
                                     </div> -->
@@ -192,73 +311,10 @@
                     <section id="main_body" class="main_body">
                         <div class="view_main_body">
                             <div class="body_inner default_width">
-                                <!-- 个人设置start -->
-                                <div class="personal_setting_view setting_view_box">
-                                    <div class="personal_setting_tab">
-                                        <div class="tab_icon">
-                                            <span class="DaDao DaDao-gerenshezhi"></span>
-                                            账户设置
-                                        </div>
-                                        <div class="center_labels">
-                                            <ul class="iblock clearfix tabob">
-                                                <li class="ST_item">
-                                                    <a class="alink iblock" href="personal_setting.html" target="_self" title="账户资料">账户资料</a>
-                                                </li>
-                                                <li class="ST_item active">
-                                                    <a class="alink iblock" href="reset_psd.html" target="_self" title="修改密码">修改密码</a>
-                                                </li>
-                                                <li class="ST_item">
-                                                    <a class="alink iblock" href="account_bind.html" target="_self" title="账户绑定">帐号绑定</a>
-                                                </li>
-                                                <li class="ST_item">
-                                                    <a class="alink iblock" href="message_tips.html" target="_self" title="消息提醒">消息提醒</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="setting_inner">
-                                        <div class="setting_me_list">
-                                            <!-- 修改密码start -->
-                                            <div class="account_item account_li">
-                                                <div class="cell_title">修改密码</div>
-                                                <div class="account_setting_box clearfix">
-                                                    <div class="fl account_label">
-                                                        密码最好由下划线（_）、数字、字母构成。
-                                                    </div>
-                                                    <div id="psdChangeBox" class="fl setting_cell">
-                                                        <div class="uname">
-                                                            <div class="iblock key">原密码：</div>
-                                                            <div class="iblock value input_width">
-                                                                <input class="dadao_input dadao_input_lg" type="password" placeholder="原密码"/>
-                                                            </div>
-                                                        </div>
-                                                        <div class="uname">
-                                                            <div class="iblock key">新密码：</div>
-                                                            <div class="iblock value input_width">
-                                                                <input class="dadao_input dadao_input_lg" type="password" placeholder="新密码"/>
-                                                            </div>
-                                                        </div>
-                                                        <div class="uname">
-                                                            <div class="iblock key">确认新密码：</div>
-                                                            <div class="iblock value input_width">
-                                                                <input class="dadao_input dadao_input_lg" type="password" placeholder="确认新密码"/>
-                                                            </div>
-                                                        </div>
-                                                        <div class="uname">
-                                                            <div class="iblock key">&nbsp;</div>
-                                                            <div class="iblock value">
-                                                                <button id="ichange" class="dadao_btn dadao_btn_lg">确认修改</button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <!-- 修改密码end -->
-
-                                        </div>
+                                <div class="application_box">
+                                    <div class="data-box" id="data-box">
                                     </div>
                                 </div>
-                                <!-- 个人设置end -->
                             </div>
                         </div>
                     </section>

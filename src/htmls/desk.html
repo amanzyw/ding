@@ -10,15 +10,13 @@
         <script type="text/javascript" src="../scripts/echarts.simple.min.js"></script>
         <script type="text/javascript" src="../scripts/main.js"></script>
         <script type="text/javascript" src="../scripts/old.main.js"></script>
-        <script>
-            common.getMsg();
-        </script>
         <link rel="stylesheet" href="../styles/antd.css" />
         <link rel="stylesheet" href="../styles/cssrest.css" />
         <link rel="stylesheet" href="../styles/app.css" />
         <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_w094gou4uzddkj4i.css" />
         <script>
             $(document).ready(function(){
+                common.getMsg();
                 if(!common.isLogin){
                     antdObj.message.info("您还没有登录登录!",1.5,function(){
                         window.location.href="/";

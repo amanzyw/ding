@@ -8,13 +8,10 @@
         <script type="text/javascript" src="../scripts/socket.js"></script>
         <script id="jquery" type="text/javascript" src="../scripts/jquery.js"></script>
         <script type="text/javascript" src="../scripts/main.js"></script>
-        <script type="text/javascript" src="../scripts/old.main.js"></script><!--
-        <script type="text/javascript" src="../scripts/plugins/gridView/yii.js"></script>
+        <script type="text/javascript" src="../scripts/old.main.js"></script>
+        <!-- <script type="text/javascript" src="../scripts/plugins/gridView/yii.js"></script>
         <script type="text/javascript" src="../scripts/plugins/gridView/yii.gridView.js"></script>
         <script type="text/javascript" src="../scripts/plugins/jquery-pjax/jquery.pjax.js"></script> -->
-        <script>
-            common.getMsg();
-        </script>
         <link rel="stylesheet" href="../styles/antd.css" />
         <link rel="stylesheet" href="../styles/cssrest.css" />
         <link rel="stylesheet" href="../styles/app.css" />
@@ -22,8 +19,9 @@
         <link rel="stylesheet" href="../../styles/bootstrap.min.css" />
         <script>
             $(document).ready(function(){
+                common.getMsg();
                 if(!common.isLogin){
-                    antdObj.message.info("您还没有登录登录!",1.5,function(){
+                    antdObj.message.info("您还没有登录!",1.5,function(){
                         window.location.href="/";
                     });
                     return;
@@ -42,10 +40,13 @@
                         });
                         return result;
                     }
+                    var getUrlInfo=common.getUrlInfo;
+                    var url=getUrlInfo.URL;
+                    var version=getUrlInfo.version;
                     var a=getParams();
                     console.log(a);
                     $.ajax({
-                        url:"http://ee-api-test.baijiakeji.cn"+a["getURL"],
+                        url:url+a["getURL"],
                         method:a["getMethod"],
                         async:true,
                         headers:{
@@ -63,8 +64,8 @@
                             var srcArr=[];
                             var scriptArr=[];
                             var obj=[];
-                            //$("#data-box").append(data.html);
-                            //return;
+                            // $("#data-box").append(data.html);
+                            // return;
                             $.each(result,function(idx,item){
                                 //$("body").append(item);
                                 html=html.replace(item,"");
@@ -80,7 +81,7 @@
                                 jQuery.getScript(item,function(){
                                     obj.push(true);
                                     if(obj.length==srcArr.length){
-                                        console.log(obj,222)
+                                        console.log(obj,222);
                                         $.each(scriptArr,function(idx1,item1){
                                             $("body").append(item1)
                                         });
@@ -90,10 +91,10 @@
                             });
 
                         }
-
                     });
                 }
                 getXport();
+                //修改右上角头部信息
                 common.changeHeaderInfo();
             });
         </script>
@@ -225,5 +226,10 @@
                 </div>
             </div>
         </div>
+        <script>
+        jQuery("#w0").yiiGridView({"filterUrl":"\/v1\/receiptentrytabulations\/list","filterSelector":"#w0-filters input, #w0-filters select"});
+        jQuery(document).pjax("#p0 a", {"headers":{"Authorization":"Bearer ZWVfI9o2VGvXiy4GBLjlN4AYQk7Lo6+5pDphO+qqXzE1MDg5ODM2NzQ="},"push":true,"replace":false,"timeout":1000,"scrollTo":false,"container":"#p0"});
+        jQuery(document).on("submit", "#p0 form[data-pjax]", function (event) {jQuery.pjax.submit(event, {"headers":{"Authorization":"Bearer ZWVfI9o2VGvXiy4GBLjlN4AYQk7Lo6+5pDphO+qqXzE1MDg5ODM2NzQ="},"push":true,"replace":false,"timeout":1000,"scrollTo":false,"container":"#p0"});});
+        <\/script>
     </body>
 </html>

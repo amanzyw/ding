@@ -10,23 +10,22 @@
         <script type="text/javascript" src="../scripts/echarts.simple.min.js"></script>
         <script type="text/javascript" src="../scripts/main.js"></script>
         <script type="text/javascript" src="../scripts/old.main.js"></script>
-        <script>
-            common.getMsg();
-        </script>
         <link rel="stylesheet" href="../styles/antd.css" />
         <link rel="stylesheet" href="../styles/cssrest.css" />
         <link rel="stylesheet" href="../styles/app.css" />
         <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_w094gou4uzddkj4i.css" />
         <script>
             $(document).ready(function(){
+                common.getMsg();
                 //开启tooltip提示
                 common.tooltip();
                 //左下角头像点击面板
                 common.hoverHeaderPic();
                 var getHTML=function(){
                     var URL=common.getUrlInfo.URL+"/"+common.getUrlInfo.version;
+                    var Version=common.getUrlInfo.version;
                     if(!common.isLogin){
-                        antdObj.message.info("您还没有登录登录!",1.5,function(){
+                        antdObj.message.info("您还没有登录!",1.5,function(){
                             window.location.href="/";
                         });
                         return;
@@ -54,7 +53,7 @@
                         return dtd.promise();
                     }
                     var getStringName=function(str){
-                        if(str.length>=10){
+                        if(str.length>10){
                             return str.substr(0,10)+"...";
                         }else{
                             return str;
@@ -70,7 +69,7 @@
                                 var result=[];
                                 $.each(arr_actions,function(idx,item){
                                     var obj=new Object();
-                                    var tamp="/v1"+"/"+app_code+"s/"+item["action_code"];
+                                    var tamp="/"+Version+"/"+app_code+"s/"+item["action_code"];
                                     obj["url"]=tamp;
                                     obj["method"]=JSON.parse(item["meth"]);
                                     obj["params"]=JSON.parse(item["params"]);
@@ -95,7 +94,7 @@
                                 $.each(item["apps"],function(index,one){
                                     var urls=getURL(one["actions"],one["app_code"]);
                                     apps+='<div class="app_cell" data-app_code="'+one["app_code"]+'">';
-                                    apps+=    '<a title="'+one["app_name"]+'" class="block" href="application1.html?getURL='+(urls[0]&&urls[0]["url"])+'&&getMethod='+(urls[0]&&urls[0]["method"])+'&&getParams='+(urls[0]&&urls[0]["params"])+'">';
+                                    apps+=    '<a title="'+one["app_name"]+'" class="block" href="application_bindform.html?getURL='+(urls[0]&&urls[0]["url"])+'&&getMethod='+(urls[0]&&urls[0]["method"])+'&&getParams='+(urls[0]&&urls[0]["params"])+'">';
                                     apps+=         '<div class="app_img img_de4" style="background:url(http://ee-admin-test.baijiakeji.cn'+one["icon_url"]+') no-repeat center center;"></div>';
                                     apps+=         '<span class="itxt">'+getStringName(one["app_name"])+'</span>';
                                     apps+=    '</a>';

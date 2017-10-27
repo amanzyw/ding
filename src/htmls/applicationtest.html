@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <script type="text/javascript" src="../../commonFunc.bundle.js"></script>
+        <script type="text/javascript" src="../scripts/socket.js"></script>
+        <script id="jquery" type="text/javascript" src="../scripts/jquery.js"></script>
+        <script type="text/javascript" src="../scripts/main.js"></script>
+        <script type="text/javascript" src="../scripts/old.main.js"></script>
+        <script type="text/javascript" src="../scripts/plugins/gridView/yii.js"></script>
+        <script type="text/javascript" src="../scripts/yii.validation.js"></script>
+        <script type="text/javascript" src="../scripts/yii.activeForm.js"></script>
+		<script type="text/javascript" src="../scripts/city.js"></script>
+        <link rel="stylesheet" href="../styles/antd.css" />
+        <link rel="stylesheet" href="../styles/cssrest.css" />
+        <link rel="stylesheet" href="../styles/app.css" />
+        <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_w094gou4uzddkj4i.css" />
+        <link rel="stylesheet" href="../../styles/bootstrap.min.css" />
+        <script>
+            $(document).ready(function(){
+                common.getMsg();
+                if(!common.isLogin){
+                    antdObj.message.info("鎮ㄨ繕娌℃湁鐧诲綍鐧诲綍!",1.5,function(){
+                        window.location.href="/";
+                    });
+                    return;
+                }
+                //寮�惎tooltip鎻愮ず
+                common.tooltip();
+                //宸︿笅瑙掑ご鍍忕偣鍑婚潰鏉�
+                common.hoverHeaderPic();
+                var getXport=function(){
+                    var getParams=function(){
+                        var url=window.location.href,tamp=null,result=new Object();
+                        url=url.split("?");
+                        url[1].split("&&").forEach(function(item,idx){
+                            tamp=item.split("=");
+                            result[tamp[0]]=tamp[1];
+                        });
+                        return result;
+                    }
+                    var a=getParams();
+                    console.log(a);
+                    $.ajax({
+                        url:"http://ee-api-test.baijiakeji.cn"+a["getURL"],
+                        method:a["getMethod"],
+                        async:true,
+                        headers:{
+                            Authorization:"Bearer "+JSON.parse(window.localStorage.getItem("userLoginInfo"))["token"]
+                        },
+                        dataType:"json",
+                        success:function(data){
+                            console.log(typeof data);
+                            //$("#jquery").remove();
+                            var regexp=/\<script.*\>[^\>\<]*\<\/script\>/img;
+                            var html=data.html;
+                            var result=html.match(regexp);
+                            var srcRegExp=/src=\"(.*)\"/;
+                            var tamp=null;
+                            var srcArr=[];
+                            var scriptArr=[];
+                            var obj=[];
+                            $("#data-box").append(data.html);
+                            return;
+                            $.each(result,function(idx,item){
+                                //$("body").append(item);
+                                html=html.replace(item,"");
+                                tamp=item.match(srcRegExp);
+                                if(tamp!=undefined){
+                                    srcArr.push(tamp[1]);
+                                }else{
+                                    scriptArr.push(item);
+                                }
+                            });
+                            $("#data-box").empty().html(html);
+                            $.each(srcArr,function(idx,item){
+                                jQuery.getScript(item,function(){
+                                    obj.push(true);
+                                    if(obj.length==srcArr.length){
+                                        console.log(obj,222)
+                                        $.each(scriptArr,function(idx1,item1){
+                                            $("body").append(item1)
+                                        });
+                                    }
+                                });
+                                $("body").append("<script src='"+item+"'><\/script>")
+                            });
+
+                        }
+
+                    });
+                }
+                //getXport();
+                common.changeHeaderInfo();
+            });
+        </script>
+        <style>
+            .data-box{
+                padding:8px 20px;
+            }
+            .mod-head{
+                height:auto!important;
+            }
+            .table-bordered{
+                border:none;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="window" class="window">
+            <div id="viewport" class="viewport">
+                <div class="main_content">
+                    <!-- 澶撮儴start -->
+                    <header class="header main_header">
+                        <div id="view_header" class="view_header">
+                            <div class="login_info clearfix">
+                                <div class="logo_model fl clearfix">
+                                    <div class="logo_img fl">
+                                        <img class="logo" src="../images/header/logo.png" alt="鏌忓槈闆嗗洟" />
+                                    </div>
+                                    <div class="logo_name fl">涓氦鏌忓槈鐢熶骇缁忚惀绠＄悊绯荤粺</div>
+                                </div>
+                                <div class="user fr">
+                                    <div class="user_model">
+                                        <span class="date">2017骞�鏈�2鏃�鏄熸湡浜�/span>
+                                        <span class="welcome">娆㈣繋鎮紝<i id="uname">xxx</i> </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    <!-- 澶撮儴end -->
+                    <!-- 宸︿晶start -->
+                    <section id="left_menu" class="left_menu">
+                        <div class="view_left_menu">
+                            <div class="left_menu_model">
+                                <ul id="menus_box" class="menus_box">
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="宸ヤ綔鍙� data-arrow-direction="right" href="./desk.html" target="_self">
+                                            <span class="DaDao DaDao-gongzuotaixuanzhong"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="鎴戝彂璧风殑" data-arrow-direction="right" href="./project.html" target="_self">
+                                            <span class="DaDao DaDao-xiangmu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item active">
+                                        <a class="menu_link" data-tooltip="搴旂敤涓績" data-arrow-direction="right" href="./application.html" target="_self">
+                                            <span class="DaDao DaDao-yingyongzhongxin"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="娑堟伅" data-arrow-direction="right" href="./message.html" target="_self">
+                                            <span class="DaDao DaDao-xiaoxi1"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="閫氳褰� data-arrow-direction="right" href="./maillist.html" target="_self">
+                                            <span class="DaDao DaDao-tongxunlu"></span>
+                                        </a>
+                                    </li>
+                                    <li class="menu_item">
+                                        <a class="menu_link" data-tooltip="鏌ヨ" data-arrow-direction="right" href="./query.html" target="_self">
+                                            <span class="DaDao DaDao-dwcxico"></span>
+                                        </a>
+                                    </li>
+                                </ul>
+                                <div class="menu_setting">
+                                    <div class="setting_item setting_u">
+                                        <a class="setting_link" data-tooltip="鍚庡彴绠＄悊" data-arrow-direction="right" href="http://ee-manage-test.baijiakeji.cn/site/login.html" target="admin">
+                                            <span class="DaDao DaDao-houtai-kehuguanli"></span>
+                                        </a>
+                                    </div>
+                                    <!-- <div class="setting_item setting_t">
+                                        <a class="setting_link" data-tooltip="鐢ㄦ埛璁剧疆" data-arrow-direction="right" href="javascript:void(0);">
+                                            <span class="DaDao DaDao-gerenshezhi"></span>
+                                        </a>
+                                    </div> -->
+                                    <div id="setting_me" class="setting_me">
+                                        <div class="tick">
+                                            <img class="head_pic" src="../images/examples/3401888993773024.jpg" src="" alt="" />
+                                        </div>
+                                        <div style="display:none;" class="ui_user_panel">
+                                            <ul class="ui_user_list">
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',1)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-account"></span>璐︽埛璧勬枡</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',2)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-password"></span>淇敼瀵嗙爜</a>
+                                                </li>
+                                                <li class="panel_item">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',3)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-binding"></span>璐﹀彿缁戝畾</a>
+                                                </li>
+                                                <li class="panel_item bd_none">
+                                                    <a onclick="window.localStorage.setItem('accountPanelIndex',4)" href="account.html" class="block atance" target="_self"><span class="DaDao DaDao-__"></span>娑堟伅鎻愰啋</a>
+                                                </li>
+                                                <li class="line"></li>
+                                                <li class="panel_item quot">
+                                                    <a href="javascript:void(0);" onclick="common.toQuot()" class="block atance" target="_self">閫�嚭绯荤粺</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- 宸︿晶end -->
+                    <!--鍐呭鍖哄煙start-->
+                    <section id="main_body" class="main_body">
+                        <div class="view_main_body">
+                            <div class="body_inner default_width">
+                                <div class="application_box">
+                                    <div class="data-box" id="data-box">
+                                        <div class="container-list">
+											<div class="owner-update">
+												<div class="mod-head"
+													style="margin: 10px 0 0; height: 44px; border: 1px solid #e2e1e1; color: #333;">
+													<h5 class="clearfix">
+														<span class="pull-left"
+															style="margin-right: 20px; padding-left: 15px; font-size: 14px; line-height: 45px;">添加Add
+															Owner: </span>
+														<span class="pull-right">
+															<a class="btn btn-xs btn-primary mod-site-save"
+																href="http://ee-manage-test.baijiakeji.cn/ownerincrease/list.html">返回列表</a>
+														</span>
+													</h5>
+												</div>
+												<div class="mod-body tab-content">
+													<div class="tab-pane active">
+														<form id="owner-form" class="form-horizontal"
+															action="http://ee-manage-test.baijiakeji.cn/ownerincrease/add.html"
+															method="post" enctype="multipart/form-data">
+															<div class="form-group field-owner-_id">
+																<div class="col-xs-9 col-sm-9 col-md-9">
+																	<input type="hidden" id="owner-_id" class="form-control"
+																		name="Owner[_id]">
+																	<div class="help-block"></div>
+																</div>
+															</div>
+															<div class="form-group field-owner-owner">
+																<label class="col-xs-2 col-sm-2 col-md-2 control-label"
+																	for="owner-owner">业主全称</label>
+																<div class="col-xs-9 col-sm-9 col-md-9">
+																	<div class="row">
+																		<div class="col-sm-12">
+																			<input type="text" id="owner-owner" class="form-control"
+																				name="Owner[owner]" placeholder="请输入业主名称">
+																		</div>
+																	</div>
+																	<div class="help-block"></div>
+																</div>
+															</div>
+															<div class="form-group field-owner-province_1">
+																<label class="col-xs-2 col-sm-2 col-md-2 control-label"
+																	for="owner-province_1">所在省</label>
+																<div class="col-xs-9 col-sm-9 col-md-9">
+																	<div class="list-group btn-group btn-group-justified">
+																		<div class="btn-group">
+																			<select id="owner-province_1" class="form-control"
+																				name="Owner[province_1]">
+
+																			</select>
+																		</div>
+																		<div class="btn-group">
+																			<select id="owner-city_1" class="form-control"
+																				name="Owner[city_1]">
+
+																			</select>
+																		</div>
+																	</div>
+																	<div class="help-block"></div>
+																</div>
+															</div>
+															<div class="form-group field-owner-contacts">
+																<label class="col-xs-2 col-sm-2 col-md-2 control-label"
+																	for="owner-contacts">联系人姓名</label>
+																<div class="col-xs-9 col-sm-9 col-md-9">
+																	<div class="row">
+																		<div class="col-sm-12">
+																			<input type="text" id="owner-contacts" class="form-control"
+																				name="Owner[contacts]" placeholder="请输入联系人名称">
+																		</div>
+																	</div>
+																	<div class="help-block"></div>
+																</div>
+															</div>
+															<div class="form-group field-owner-position">
+																<label class="col-xs-2 col-sm-2 col-md-2 control-label"
+																	for="owner-position">联系人职位</label>
+																<div class="col-xs-9 col-sm-9 col-md-9">
+																	<div class="row">
+																		<div class="col-sm-12">
+																			<input type="text" id="owner-position" class="form-control"
+																				name="Owner[position]" placeholder="请输入联系人职位">
+																		</div>
+																	</div>
+																	<div class="help-block"></div>
+																</div>
+															</div>
+															<div class="form-group field-owner-number">
+																<label class="col-xs-2 col-sm-2 col-md-2 control-label"
+																	for="owner-number">联系方式</label>
+																<div class="col-xs-9 col-sm-9 col-md-9">
+																	<div class="row">
+																		<div class="col-sm-12">
+																			<input type="text" id="owner-number" class="form-control"
+																				name="Owner[number]" placeholder="请输入联系人电话号码">
+																		</div>
+																	</div>
+																	<div class="help-block"></div>
+																</div>
+															</div>
+															<div class="form-group">
+																<div class="col-xs-11 col-sm-11 col-md-11">
+																	<button type="submit" class="btn btn-success center-block">修改</button>
+																</div>
+															</div>
+														</form>
+													</div>
+												</div>
+											</div>
+										</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!--鍐呭鍖哄煙end-->
+                </div>
+            </div>
+        </div>
+		<script type="text/javascript">
+			new PCAS('Owner[province_1]','Owner[city_1]');
+			jQuery('#owner-form').yiiActiveForm([{"id":"owner-owner","name":"owner","container":".field-owner-owner","input":"#owner-owner","validate":function (attribute, value, messages, deferred, $form) {yii.validation.string(value, messages, {"message":"业主全称必须是一条字符串。","max":20,"tooLong":"业主全称最多输入20个字","skipOnEmpty":1});}},{"id":"owner-province_1","name":"province_1","container":".field-owner-province_1","input":"#owner-province_1","validate":function (attribute, value, messages, deferred, $form) {yii.validation.number(value, messages, {"pattern":/^\s*[+-]?\d+\s*$/,"message":"所在省必须为整数","skipOnEmpty":1});}},{"id":"owner-contacts","name":"contacts","container":".field-owner-contacts","input":"#owner-contacts","validate":function (attribute, value, messages, deferred, $form) {yii.validation.string(value, messages, {"message":"联系人姓名必须是一条字符串。","max":4,"tooLong":"联系人姓名最多输入4个字","skipOnEmpty":1});}},{"id":"owner-position","name":"position","container":".field-owner-position","input":"#owner-position","validate":function (attribute, value, messages, deferred, $form) {yii.validation.string(value, messages, {"message":"联系人职位必须是一条字符串。","max":10,"tooLong":"联系人职位最多输入10个字","skipOnEmpty":1});}},{"id":"owner-number","name":"number","container":".field-owner-number","input":"#owner-number","validate":function (attribute, value, messages, deferred, $form) {yii.validation.string(value, messages, {"message":"联系方式必须是一条字符串。","max":20,"tooLong":"联系方式最多输入20个字","skipOnEmpty":1});}}], []);
+			$('#owner-form').on('submit',function(){
+			    $.ajax({
+				    url: 'http://ee-api-test.baijiakeji.cn/v1/ownerincreases/add',
+				    type:'post',
+				    async:true,
+				    headers:{
+				      Authorization:'Bearer ' + JSON.parse(window.localStorage.getItem("userLoginInfo"))["token"]
+				    },
+				    data:$(this).serialize(),
+				    dataType:'json',
+				    success:function(data){
+				      alert('添加成功');
+				    },
+				    error:function(){
+				      alert('添加错误');
+				    }
+				});
+				return false;
+			});
+
+		</script>
+    </body>
+</html>

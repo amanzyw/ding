@@ -12,9 +12,6 @@
         <script type="text/javascript" src="../scripts/plugins/bootstrap-tree/js/bootstrap-treeview.js"></script>
         <script type="text/javascript" src="../scripts/plugins/bootstrap-table/js/bootstrap-table.js"></script>
         <script type="text/javascript" src="../scripts/plugins/jquery-page/js/jquery.page.js"></script>
-        <script>
-            common.getMsg();
-        </script>
         <link rel="stylesheet" href="../../styles/bootstrap.min.css" />
         <link rel="stylesheet" href="../scripts/plugins/bootstrap-tree/css/bootstrap-treeview.css" />
         <link rel="stylesheet" href="../styles/antd.css" />
@@ -22,6 +19,9 @@
         <link rel="stylesheet" href="../styles/app.css" />
         <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_irdk89uxsf9a4i.css" />
         <script>
+            $(document).ready(function(){
+                common.getMsg();
+            });
             var getUrlInfo=common.getUrlInfo,
                 URL=getUrlInfo.URL,
                 version=getUrlInfo.version,

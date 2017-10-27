@@ -10,17 +10,15 @@
         <script type="text/javascript" src="../scripts/echarts.simple.min.js"></script>
         <script type="text/javascript" src="../scripts/main.js"></script>
         <script type="text/javascript" src="../scripts/old.main.js"></script>
-        <script>
-            common.getMsg();
-        </script>
         <link rel="stylesheet" href="../styles/antd.css" />
         <link rel="stylesheet" href="../styles/cssrest.css" />
         <link rel="stylesheet" href="../styles/app.css" />
         <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_w094gou4uzddkj4i.css" />
         <script>
             $(document).ready(function(){
+                common.getMsg();
                 if(!common.isLogin){
-                    antdObj.message.info("您还没有登录登录!",1.5,function(){
+                    antdObj.message.info("您还没有登录!",1.5,function(){
                         window.location.href="/";
                     });
                     return;
@@ -86,7 +84,7 @@
                         console.log()
                         if(msg.length!=0){
                             $.each(msg,function(idx,item){
-                                html+='<tr><td><label class="dadao_input_checkbox"><input disabled class="default_checkbox" type="checkbox"><span class="checkbox_inner"></span></label></td><td><span class="itext">'+item["message"]+'</span></td><td>'+transType(item["type"])+'</td><td>'+item["create_time"]+'</td></tr>';
+                                html+='<tr><td><span class="itext">'+JSON.parse(item["message"])["message"]+'</span></td><td>'+transType(item["type"])+'</td><td>'+item["create_time"]+'</td></tr>';
                             });
                             $("#children_checkbox").empty().html(html);
                         }else{
@@ -241,7 +239,7 @@
                                                                 <tr>
                                                                     <th>消息内容</th>
                                                                     <th width="108">类型</th>
-                                                                    <th width="98">时间</th>
+                                                                    <th width="178">时间</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody id="children_checkbox">

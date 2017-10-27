@@ -9,17 +9,15 @@
         <script type="text/javascript" src="../scripts/jquery1.9.1.min.js"></script>
         <script type="text/javascript" src="../scripts/main.js"></script>
         <script type="text/javascript" src="../scripts/old.main.js"></script>
-        <script>
-            common.getMsg();
-        </script>
         <link rel="stylesheet" href="../styles/antd.css" />
         <link rel="stylesheet" href="../styles/cssrest.css" />
         <link rel="stylesheet" href="../styles/app.css" />
         <link rel="stylesheet" href="http://at.alicdn.com/t/font_392605_w094gou4uzddkj4i.css" />
         <script>
             $(document).ready(function(){
+                common.getMsg();
                 if(!common.isLogin){
-                    antdObj.message.info("您还没有登录登录!",1.5,function(){
+                    antdObj.message.info("您还没有登录!",1.5,function(){
                         window.location.href="/";
                     });
                     return;
@@ -112,11 +110,10 @@
                     });
                 }
                 var getMsgData=function(){
+                    var getUrlInfo=common.getUrlInfo;
+                    var url=getUrlInfo.URL+"/"+getUrlInfo.version;
                     var getData=function(){
-                        var dtd=$.Deferred(),
-                            getUrlInfo=common.getUrlInfo,
-                            url=getUrlInfo.URL+"/"+getUrlInfo.version;
-
+                        var dtd=$.Deferred();
                         $.ajax({
                             url:url+"/messages/list",
                             type:"get",
@@ -159,21 +156,56 @@
                         }
                         return result
                     }
-                    $.when(getData()).done(function(DATA){
-                        console.log(111,DATA);
-                        var html="";
-                        var msg=DATA.data;
-                        if(msg.length!=0){
-                            $.each(msg,function(idx,item){
-                            html+='<tr><td><label class="dadao_input_checkbox"><input disabled class="default_checkbox" type="checkbox"><span class="checkbox_inner"></span></label></td><td><span class="itext">'+item["message"]+'</span></td><td>'+transType(item["type"])+'</td><td>'+item["create_time"]+'</td></tr>';
-                            });
-                            $("#children_checkbox").empty().html(html);
-                        }else{
-                            $("#children_checkbox").html("<tr><td colspan='4'><div class='empty'><div class='dadao_empty'></div><div class='empty_text'>暂时没有消息</div></div></td></tr>");
-                        }
-                    }).fail(function(){
-                        antdObj.message.info("获取消息列表出错，请稍后再试！",1.5);
-                        throw new Error("网络出错，请稍后再试");
+                    var getAndSetMsg=function(){
+                        $.when(getData()).done(function(DATA){
+                            var html="";
+                            var msg=DATA.data;
+                            if(msg.length!=0){
+                                $.each(msg,function(idx,item){
+                                html+='<tr data-org_id="'+item["org_id"]+'" data-sponsor_id="'+item["sponsor_id"]+'"><td><span class="itext">'+item["message"]+'</span></td><td>'+transType(item["type"])+'</td><td>'+item["create_time"]+'</td></tr>';
+                                });
+                                $("#children_checkbox").empty().html(html);
+                            }else{
+                                $("#children_checkbox").html("<tr><td colspan='3'><div class='empty'><div class='dadao_empty'></div><div class='empty_text'>暂时没有消息</div></div></td></tr>");
+                            }
+                        }).fail(function(){
+                            antdObj.message.info("获取消息列表出错，请稍后再试！",1.5);
+                            throw new Error("网络出错，请稍后再试");
+                        });
+                    }
+                    getAndSetMsg();
+                    $("#setreaded").on("click",function(){
+                        /*$.ajax({
+                            url:url+"/messages/mread",
+                            type:"put",
+                            async:true,
+                            headers:{
+                            Authorization:"Bearer "+JSON.parse(window.localStorage.getItem("userLoginInfo"))["token"]
+                            },
+                            data:{
+                            },
+                            success:function(data){
+                                console.log(data,2222);
+                            },
+                            error:function(){
+                            }
+                        });*/
+                        $.ajax({
+                            url:url+"/messages/mread",
+                            type:"put",
+                            async:true,
+                            headers:{
+                            Authorization:"Bearer "+JSON.parse(window.localStorage.getItem("userLoginInfo"))["token"]
+                            },
+                            data:{
+                            },
+                            success:function(data){
+                                console.log(data,2222);
+                                getAndSetMsg();
+                            },
+                            error:function(){
+                            }
+                        });
                     });
                 }
                 checkedAll();
@@ -302,7 +334,7 @@
                                                     <a class="alink" href="./message_readed.html" target="_self">已读消息</a>
                                                 </div>
                                                 <div class="fr set_read">
-                                                    <button class="dadao_btn">标记为已读</button>
+                                                    <button id="setreaded" class="dadao_btn">全部标记为已读</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -313,13 +345,13 @@
                                                         <table class="ui_table dadao_table table_strick">
                                                             <thead>
                                                                 <tr>
-                                                                    <th width="78">
+                                                                    <!-- <th width="78">
                                                                         <label class="dadao_input_checkbox">
                                                                             <input id="checkall" class="default_checkbox" type="checkbox" />
                                                                             <span class="checkbox_inner"></span>
                                                                         </label>
                                                                         <span class="message_all">全选</span>
-                                                                    </th>
+                                                                    </th> -->
                                                                     <th>消息内容</th>
                                                                     <th width="108">类型</th>
                                                                     <th width="178">时间</th>

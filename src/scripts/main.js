@@ -2,7 +2,7 @@
 * @Author: Wanglj
 * @Date:   2017-08-28 11:48:37
 * @Last Modified by:   Wanglj
-* @Last Modified time: 2017-10-23 11:59:32
+* @Last Modified time: 2017-10-26 19:07:16
 */
 
 'use strict';
@@ -43,6 +43,14 @@ var common={
         socket.on("connect", function() {
             console.log("socket 连接了..");
             socket.emit("uid",clientMsgInfo);
+        });
+        socket.on("message",function(msg){
+            console.log('-----',msg,typeof msg);
+            if(msg.len!=0){
+                $(".DaDao-xiaoxi1").append("<div class='message_count'>"+msg.len+"</div>");
+            }else{
+                $(".DaDao-xiaoxi1").empty();
+            }
         });
     },
     tooltip:function(){

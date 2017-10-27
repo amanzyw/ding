@@ -1,0 +1,5 @@
+{
+    "htmls":"<div>hi,my name is 张有为</div>",
+    "scripts":["yii.js","yii.gridView.js"],
+    "inject":"<script>console.log('哎呦不错噢！')</script>"
+}
